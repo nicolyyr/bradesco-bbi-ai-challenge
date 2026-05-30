@@ -1,46 +1,52 @@
 def analyze_transcript(transcript):
     lower_text = transcript.lower()
 
-    if "optimistic" in lower_text or "strong performance" in lower_text:
+    positive_words = [
+        "growth", "strong", "positive", "improved",
+        "opportunity", "optimistic", "increase", "success"
+    ]
+
+    negative_words = [
+        "risk", "decline", "challenge", "weak",
+        "loss", "negative", "uncertainty", "decrease"
+    ]
+
+    positive_count = sum(1 for word in positive_words if word in lower_text)
+    negative_count = sum(1 for word in negative_words if word in lower_text)
+
+    if positive_count > negative_count:
         tone = "optimistic"
-        confidence = 0.85
-    elif "challenge" in lower_text or "risk" in lower_text or "decline" in lower_text:
+        confidence = 0.80
+    elif negative_count > positive_count:
         tone = "pessimistic"
-        confidence = 0.75
+        confidence = 0.80
     else:
         tone = "neutral"
         confidence = 0.60
 
     return {
         "company": "Sample Company",
-
         "management_tone": {
             "classification": tone,
             "confidence": confidence,
-            "evidence": [
-                transcript[:200]
-            ]
+            "evidence": [transcript[:200]]
         },
-
         "key_takeaways": [
             "Revenue increased by 15% year-over-year."
             if "revenue increased" in lower_text
             else "No clear revenue takeaway identified in this chunk."
         ],
-
         "guidance": [
             "Management expects strong performance next quarter."
             if "next quarter" in lower_text
             else "No explicit guidance identified in this chunk."
         ],
-
         "red_flags": [
             {
                 "quote": "No red flags identified.",
-                "reason": "No negative keywords were detected in this chunk."
+                "reason": "No significant negative signals were detected."
             }
         ],
-
         "surprise_score": {
             "score": 6 if "15%" in lower_text else 3,
             "justification": (
@@ -83,11 +89,6 @@ TRANSCRIPT:
 
 
 def process_chunk(prompt, chunk):
-    request = build_analysis_request(
-        prompt,
-        chunk
-    )
-
+    request = build_analysis_request(prompt, chunk)
     print("\nProcessing chunk...\n")
-
     return analyze_transcript(chunk)

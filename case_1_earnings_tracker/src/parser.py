@@ -3,13 +3,24 @@ def load_transcript(file_path):
         return file.read()
 
 
-def split_text_into_chunks(text, chunk_size=100):
-    chunks = []
-
-    for i in range(0, len(text), chunk_size):
-        chunks.append(text[i:i + chunk_size])
-
-    return chunks
 def load_prompt(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
         return file.read()
+
+
+def split_text_into_chunks(text, chunk_size=500):
+    paragraphs = text.split("\n\n")
+    chunks = []
+    current_chunk = ""
+
+    for paragraph in paragraphs:
+        if len(current_chunk) + len(paragraph) <= chunk_size:
+            current_chunk += paragraph + "\n\n"
+        else:
+            chunks.append(current_chunk.strip())
+            current_chunk = paragraph + "\n\n"
+
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+
+    return chunks

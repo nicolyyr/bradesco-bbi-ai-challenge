@@ -2,33 +2,31 @@
 # Earnings Call Intelligence Report
 
 ## Management Tone
-Classification: **optimistic**
+Classification: **pessimistic**
 
-Confidence: **0.85**
+Confidence: **0.8**
 
 Evidence:
 > Good morning everyone.
 
-Revenue increased by 15% compared to last year.
+Revenue declined by 20% compared to last year.
 
-We remain optimistic about 
+We are facing significant challenges in demand.
+
+There is uncertainty regarding future performance.
+
+The company expects weak re
 
 ## Key Takeaways
-- Revenue increased by 15% year-over-year.
-- No clear revenue takeaway identified in this chunk.
 - No clear revenue takeaway identified in this chunk.
 
 ## Guidance
-- No explicit guidance identified in this chunk.
 - Management expects strong performance next quarter.
-- No explicit guidance identified in this chunk.
 
 ## Red Flags
-- No red flags identified. (No negative keywords were detected in this chunk.)
-- No red flags identified. (No negative keywords were detected in this chunk.)
-- No red flags identified. (No negative keywords were detected in this chunk.)
+- No red flags identified. (No significant negative signals were detected.)
 
 ## Surprise Score
-Score: **6/10**
+Score: **3/10**
 
-Revenue growth of 15% may represent a positive surprise.
+No major surprise identified in this chunk.

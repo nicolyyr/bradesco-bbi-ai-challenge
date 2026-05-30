@@ -11,7 +11,7 @@ prompt = load_prompt(
     "case_1_earnings_tracker/prompts/analysis_prompt.txt"
 )
 
-chunks = split_text_into_chunks(transcript, chunk_size=100)
+chunks = split_text_into_chunks(transcript, chunk_size=500)
 
 chunk_analyses = []
 

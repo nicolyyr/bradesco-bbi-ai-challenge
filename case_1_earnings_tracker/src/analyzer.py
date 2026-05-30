@@ -54,3 +54,11 @@ def combine_chunk_analyses(chunk_analyses):
         "red_flags": combined_red_flags,
         "surprise_score": chunk_analyses[0]["surprise_score"]
     }
+def build_analysis_request(prompt, transcript_chunk):
+    return f"""
+{prompt}
+
+TRANSCRIPT:
+
+{transcript_chunk}
+"""

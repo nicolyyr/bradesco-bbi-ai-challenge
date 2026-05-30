@@ -1,32 +1,27 @@
-from parser import load_transcript, split_text_into_chunks
-from analyzer import analyze_transcript, combine_chunk_analyses
-from report_generator import generate_report
-from utils import save_json, save_text
+from parser import (
+    load_transcript,
+    split_text_into_chunks,
+    load_prompt
+)
+
+from analyzer import build_analysis_request
 
 transcript = load_transcript(
     "case_1_earnings_tracker/data/sample_transcript.txt"
 )
 
-chunks = split_text_into_chunks(transcript, chunk_size=100)
-
-chunk_analyses = []
-
-for chunk in chunks:
-    analysis = analyze_transcript(chunk)
-    chunk_analyses.append(analysis)
-
-final_analysis = combine_chunk_analyses(chunk_analyses)
-
-save_json(
-    final_analysis,
-    "case_1_earnings_tracker/outputs/analysis.json"
+prompt = load_prompt(
+    "case_1_earnings_tracker/prompts/analysis_prompt.txt"
 )
 
-report = generate_report(final_analysis)
-
-save_text(
-    report,
-    "case_1_earnings_tracker/outputs/report.md"
+chunks = split_text_into_chunks(
+    transcript,
+    chunk_size=100
 )
 
-print("Final analysis saved successfully.")
+request = build_analysis_request(
+    prompt,
+    chunks[0]
+)
+
+print(request)

@@ -62,3 +62,12 @@ TRANSCRIPT:
 
 {transcript_chunk}
 """
+def process_chunk(prompt, chunk):
+    request = build_analysis_request(
+        prompt,
+        chunk
+    )
+
+    print("\nProcessing chunk...\n")
+
+    return analyze_transcript(chunk)

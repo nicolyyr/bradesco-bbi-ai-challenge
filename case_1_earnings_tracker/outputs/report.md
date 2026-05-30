@@ -13,11 +13,21 @@ Evidence:
 - Revenue increased by 15% year-over-year.
 - Management expressed optimism about future growth.
 - Strong outlook for next quarter.
+- Revenue increased by 15% year-over-year.
+- Management expressed optimism about future growth.
+- Strong outlook for next quarter.
+- Revenue increased by 15% year-over-year.
+- Management expressed optimism about future growth.
+- Strong outlook for next quarter.
 
 ## Guidance
 - Management expects strong performance next quarter.
+- Management expects strong performance next quarter.
+- Management expects strong performance next quarter.
 
 ## Red Flags
+- No red flags identified. (Sample transcript is limited.)
+- No red flags identified. (Sample transcript is limited.)
 - No red flags identified. (Sample transcript is limited.)
 
 ## Surprise Score

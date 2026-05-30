@@ -1,10 +1,14 @@
 {
     "company": "Sample Company",
-    "tone": "optimistic",
-    "revenue_growth": "15%",
+    "management_tone": {
+        "classification": "optimistic",
+        "evidence": [
+            "We remain optimistic about future growth and expect strong performance in the next quarter."
+        ]
+    },
     "key_takeaways": [
-        "Revenue increased year-over-year",
-        "Positive guidance for next quarter",
-        "Management remains optimistic"
+        "Revenue increased by 15% year-over-year.",
+        "Management expressed optimism about future growth.",
+        "The transcript suggests a positive outlook."
     ]
 }

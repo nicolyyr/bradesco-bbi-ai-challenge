@@ -1,15 +1,34 @@
 def analyze_transcript(transcript):
     return {
         "company": "Sample Company",
+
         "management_tone": {
             "classification": "optimistic",
+            "confidence": 0.85,
             "evidence": [
                 "We remain optimistic about future growth and expect strong performance in the next quarter."
             ]
         },
+
         "key_takeaways": [
             "Revenue increased by 15% year-over-year.",
             "Management expressed optimism about future growth.",
-            "The transcript suggests a positive outlook."
-        ]
+            "Strong outlook for next quarter."
+        ],
+
+        "guidance": [
+            "Management expects strong performance next quarter."
+        ],
+
+        "red_flags": [
+            {
+                "quote": "No red flags identified.",
+                "reason": "Sample transcript is limited."
+            }
+        ],
+
+        "surprise_score": {
+            "score": 6,
+            "justification": "15% revenue growth may exceed expectations."
+        }
     }

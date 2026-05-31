@@ -47,7 +47,10 @@ class GenerationResult:
     """Outcome of a structured generation, with provenance for demos/tests."""
 
     data: BaseModel
-    source: str  # currently always SOURCE_LLM
+    # Provenance of the answer. Always SOURCE_LLM today (generative AI is the
+    # only path); kept as an explicit field so the banner/logs can distinguish
+    # sources if a second one (e.g. a cache) is ever added.
+    source: str
     provider: str
     model: str
     attempts: int

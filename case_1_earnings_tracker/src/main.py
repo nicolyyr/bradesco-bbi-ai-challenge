@@ -3,7 +3,7 @@
 Runs the full pipeline:
     transcript (+ analyst questions, + optional prior quarter)
         -> versioned prompts
-        -> LLM (real or mock) with schema validation + fallback
+        -> LLM (Gemini/OpenAI) with schema validation + regeneration
         -> validated EarningsAnalysis
         -> JSON + <=400-word Markdown report
 
@@ -83,8 +83,7 @@ def run(argv=None) -> int:
         client=client,
     )
 
-    os.makedirs(os.path.dirname(args.out_json), exist_ok=True)
-    save_json(analysis.to_dict(), args.out_json)
+    save_json(analysis.to_dict(), args.out_json)  # save_json ensures the dir
     report = generate_report(analysis, source_banner=result.banner())
     save_text(report, args.out_report)
 

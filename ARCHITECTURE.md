@@ -35,13 +35,14 @@ case_1_earnings_tracker/
 │   ├── parser.py         # I/O + prompt rendering (clear errors)
 │   ├── analyzer.py       # CORE: render -> LLMClient -> validated model
 │   ├── report_generator.py  # <=400-word Markdown
+│   ├── utils.py          # save_json / save_text helpers
 │   └── main.py           # CLI entrypoint (argparse)
 └── outputs/{analysis.json,report.md}
 
 case_2_macro_engine/      # same shape
 ├── prompts/{system_prompt,user_prompt}.txt
 ├── data/scenario.txt
-├── src/{schema,macro_analyzer,report_generator,main}.py
+├── src/{schema,macro_analyzer,report_generator,utils,main}.py
 └── outputs/{analysis.json,report.md}
 
 demo.py · Makefile · requirements.txt · .env.example · tests/

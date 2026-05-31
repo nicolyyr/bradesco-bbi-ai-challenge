@@ -35,9 +35,9 @@ def generate_report(
     if isinstance(analysis, dict):
         analysis = EarningsAnalysis.model_validate(analysis)
 
-    # The LLM can be more verbose than the deterministic baseline. We build the
-    # report at decreasing per-item word budgets (scale) until it fits the
-    # 400-word executive limit. Full, untruncated content stays in analysis.json.
+    # The LLM can be verbose, so we build the report at decreasing per-item word
+    # budgets (scale) until it fits the 400-word executive limit. Full,
+    # untruncated content always stays in analysis.json.
     for scale in (1.0, 0.85, 0.7, 0.55, 0.4):
         report = _render(analysis, source_banner, scale)
         if len(report.split()) <= WORD_LIMIT:

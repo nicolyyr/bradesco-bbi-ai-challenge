@@ -2,7 +2,7 @@
 
 Adds the repo root and both case ``src`` dirs to sys.path so tests can import
 the modules regardless of where pytest is invoked from. Because the two cases
-use flat module names (schema, baseline, ...), tests import them under explicit
+use flat module names (schema, main, ...), tests import them under explicit
 package paths (e.g. ``case_1_earnings_tracker.src.schema``) to avoid collisions.
 """
 
@@ -64,7 +64,6 @@ def clean_env(monkeypatch):
         "LLM_TEMPERATURE",
         "LLM_MAX_TOKENS",
         "LLM_MAX_RETRIES",
-        "LLM_ALLOW_FALLBACK",
     ):
         monkeypatch.delenv(var, raising=False)
     return monkeypatch

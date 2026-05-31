@@ -2,7 +2,7 @@
 
 All credentials and tunables live here so that no business-logic module ever
 reads ``os.environ`` directly. This keeps the call to the model decoupled from
-the rest of the code and makes the runtime mode (real vs. mock) explicit.
+the rest of the code and makes provider selection (Gemini or OpenAI) explicit.
 """
 
 from __future__ import annotations

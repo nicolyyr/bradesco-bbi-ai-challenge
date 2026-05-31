@@ -29,9 +29,9 @@ def generate_report(
     if isinstance(analysis, dict):
         analysis = MacroAnalysis.model_validate(analysis)
 
-    # The LLM can be more verbose than the baseline. Build at decreasing per-item
-    # word budgets until the report fits the 500-word limit; full content stays
-    # in analysis.json.
+    # The LLM can be verbose, so we build at decreasing per-item word budgets
+    # until the report fits the 500-word limit; full content always stays in
+    # analysis.json.
     for scale in (1.0, 0.85, 0.7, 0.55, 0.4):
         report = _render(analysis, source_banner, scale)
         if len(report.split()) <= WORD_LIMIT:

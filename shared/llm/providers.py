@@ -86,8 +86,8 @@ class LLMProvider(ABC):
 class OpenAIProvider(LLMProvider):
     """Real OpenAI integration with retries and JSON-mode output.
 
-    The OpenAI SDK is imported lazily so that the mock path (and the test
-    suite) never require the package to be importable at module load time.
+    The OpenAI SDK is imported lazily so that the test suite (which injects a
+    fake client) never requires the package to be importable at module load time.
     """
 
     name = "openai"
@@ -178,8 +178,8 @@ class GeminiProvider(LLMProvider):
 
     Default real provider: Google offers a free tier, so this is the
     lowest-friction way for a reviewer to exercise the genuine generative-AI
-    path. The ``google-genai`` SDK is imported lazily so the mock path and the
-    test suite never require it. A client can be injected for testing.
+    path. The ``google-genai`` SDK is imported lazily so the test suite (which
+    injects a fake client) never requires it. A client can be injected for tests.
     """
 
     name = "gemini"

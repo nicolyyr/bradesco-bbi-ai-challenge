@@ -3,8 +3,8 @@
 These pydantic models ARE the contract between the LLM and the rest of the
 pipeline. The model is instructed to emit exactly this JSON; the client
 validates the response against these models before any business code sees it.
-Validating here is what lets us trust - and, when needed, repair via fallback -
-the model's output.
+Validation is what lets us trust the model's output - and, on a contract
+mismatch, regenerate instead of shipping malformed data.
 """
 
 from __future__ import annotations

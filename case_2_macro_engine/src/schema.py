@@ -18,12 +18,16 @@ class TickerImpact(BaseModel):
 
 
 class MacroAnalysis(BaseModel):
+    # min_length encodes the PDF's required counts as a hard floor, so an answer
+    # missing sectors/tickers/risks is rejected and regenerated rather than
+    # shipped. No max: the report slices to the top N, and a hard ceiling would
+    # needlessly fail an otherwise-good (generous) answer.
     scenario_summary: str
-    positive_sectors: List[SectorImpact] = Field(default_factory=list)
-    negative_sectors: List[SectorImpact] = Field(default_factory=list)
-    positive_tickers: List[TickerImpact] = Field(default_factory=list)
-    negative_tickers: List[TickerImpact] = Field(default_factory=list)
-    market_risks: List[str] = Field(default_factory=list)
+    positive_sectors: List[SectorImpact] = Field(min_length=5)
+    negative_sectors: List[SectorImpact] = Field(min_length=5)
+    positive_tickers: List[TickerImpact] = Field(min_length=3)
+    negative_tickers: List[TickerImpact] = Field(min_length=3)
+    market_risks: List[str] = Field(min_length=3)
     confidence_score: int = Field(ge=1, le=10)
     confidence_rationale: str = ""
     investment_view: str = ""

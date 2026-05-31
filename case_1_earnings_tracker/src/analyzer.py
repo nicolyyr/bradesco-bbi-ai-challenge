@@ -1,12 +1,10 @@
 """Case 1 core: turn an earnings-call transcript into a validated analysis.
 
 This module is the seam between business logic and the model. It renders the
-versioned prompts, asks the shared :class:`LLMClient` for a structured answer
-validated against :class:`EarningsAnalysis`, and supplies the deterministic
-baseline as both the mock generator and the fallback payload.
-
-The keyword engine lives in ``baseline.py`` and is used ONLY as mock/fallback -
-the primary path is genuine generative AI.
+versioned prompts and asks the shared :class:`LLMClient` for a structured answer
+validated against :class:`EarningsAnalysis`. The model performs the extraction
+and the quarter-over-quarter guidance comparison; there is no deterministic
+fallback - generative AI is mandatory.
 """
 
 from __future__ import annotations

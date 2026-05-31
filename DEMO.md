@@ -100,7 +100,8 @@ and both end-to-end flows.
 Case 1 report includes: management tone with verbatim evidence; key takeaways;
 guidance; **guidance changes vs. prior quarter** (e.g. "delinquency / credit
 quality: increased emphasis (prior=6, current=38 mentions)"); top-3 analyst
-questions; **verbatim** red-flag quotes; surprise score (e.g. 9/10).
+questions; **verbatim** red-flag quotes; a calibrated surprise score (the
+committed sample run scored 6/10, with a justification quoting the call).
 
 Case 2 report includes: scenario summary derived from the input; 5 benefited and
 5 hurt sectors with transmission rationale; 3 positive + 3 negative B3 tickers;

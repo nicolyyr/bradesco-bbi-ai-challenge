@@ -12,6 +12,10 @@ explicit, versioned **prompt engineering**:
   top-5 benefited/hurt sectors with transmission mechanism, 3+3 B3 tickers,
   top-3 thesis risks, confidence score + a ≤500-word report.
 
+> **In a hurry?** Read the one-page [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md).
+> Proof it works: [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) (39 passing tests)
+> and [docs/LLM_EXAMPLES.md](docs/LLM_EXAMPLES.md) (real `[LLM]` runs).
+
 ---
 
 ## Table of contents

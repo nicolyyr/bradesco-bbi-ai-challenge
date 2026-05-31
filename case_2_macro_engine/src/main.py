@@ -3,7 +3,7 @@
 Pipeline:
     macro scenario (natural language)
         -> versioned prompts
-        -> LLM (real or mock) with schema validation + fallback
+        -> LLM (Gemini/OpenAI) with schema validation + regeneration
         -> validated MacroAnalysis
         -> JSON + <=500-word Markdown report
 

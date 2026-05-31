@@ -24,14 +24,13 @@ explicit, versioned **prompt engineering**:
 7. [Installation](#installation)
 8. [Configuration](#configuration)
 9. [Running locally](#running-locally)
-10. [Demo](#demo)
-11. [Tests](#tests)
-12. [Troubleshooting](#troubleshooting)
-13. [Time log](#time-log)
-14. [Prioritization rationale](#prioritization-rationale)
-15. [Three most serious limitations](#three-most-serious-limitations)
-16. [If I had two more weeks](#if-i-had-two-more-weeks)
-17. [Risks](#risks)
+10. [Tests](#tests)
+11. [Troubleshooting](#troubleshooting)
+12. [Time log](#time-log)
+13. [Prioritization rationale](#prioritization-rationale)
+14. [Three most serious limitations](#three-most-serious-limitations)
+15. [If I had two more weeks](#if-i-had-two-more-weeks)
+16. [Risks](#risks)
 
 ---
 
@@ -177,17 +176,6 @@ echo "The Selic was cut 200bps amid an easing cycle." | \
 ```
 
 Outputs are written to each case's `outputs/{analysis.json,report.md}`.
-
-## Demo
-
-```bash
-python demo.py        # both cases   (or: make demo)
-python demo.py --case 1
-python demo.py --case 2
-```
-
-Full presentation script in [DEMO.md](DEMO.md), including how to prove GenAI is
-in use and how to switch between mock and real modes live.
 
 ## Tests
 

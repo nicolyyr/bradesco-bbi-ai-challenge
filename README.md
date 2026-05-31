@@ -1,52 +1,142 @@
+# Bradesco BBI AI Challenge
+
+Project developed as part of the Bradesco BBI AI Challenge.
+
+## Overview
+
+This project aims to analyze earnings call transcripts and transform unstructured financial discussions into structured insights.
+
+The system processes transcripts, identifies management sentiment, extracts key takeaways, highlights potential risks, and generates structured reports.
+
+## Features
+
+* Transcript loading
+* Prompt-based analysis workflow
+* Text chunking for large documents
+* Sentiment classification
+* Structured JSON output
+* Markdown report generation
+* Guidance analysis
+* Red flag detection
+* Surprise score generation
+
+## Project Structure
+
+```text
+case_1_earnings_tracker/
+├── data/
+├── outputs/
+├── prompts/
+└── src/
+```
+
+## Pipeline
+
+Transcript → Chunking → Analysis → Aggregation → JSON → Report
+
+```mermaid
+flowchart TD
+    A[Transcript] --> B[Load Transcript]
+    B --> C[Chunking]
+    C --> D[Process Chunk]
+    D --> E[Sentiment Analysis]
+    E --> F[Combine Results]
+    F --> G[JSON Output]
+    G --> H[Markdown Report]
+```
+
+## Example Output
+
+```json
+{
+  "company": "Sample Company",
+  "management_tone": {
+    "classification": "optimistic",
+    "confidence": 0.80
+  },
+  "key_takeaways": [
+    "Revenue increased by 15% year-over-year."
+  ],
+  "guidance": [
+    "Management expects strong performance next quarter."
+  ],
+  "surprise_score": {
+    "score": 6
+  }
+}
+```
+
+## Technologies
+
+* Python
+* Git
+* GitHub
+* JSON
+* Markdown
+
 ## Architecture
 
 The solution follows a modular pipeline architecture:
 
-* `parser.py`: transcript ingestion and chunking
-* `analyzer.py`: sentiment analysis, guidance extraction, red flag detection, and structured insight generation
-* `report_generator.py`: markdown report generation
-* `utils.py`: output persistence
-* `main.py`: pipeline orchestration
+* `main.py`: orchestrates the workflow
+* `parser.py`: transcript ingestion and chunk generation
+* `analyzer.py`: sentiment analysis, guidance extraction, red flag detection, and insight generation
+* `report_generator.py`: executive report generation in Markdown
+* `utils.py`: file persistence and output handling
 
 ## Prompt Engineering Decisions
 
-The analysis prompt was designed to encourage structured outputs and reduce ambiguity.
+The project uses a structured prompt approach designed to encourage consistent outputs and reduce ambiguity.
 
 Key decisions:
 
 * Explicit JSON schema definition
-* Separation between transcript content and instructions
-* Requirement for evidence-based conclusions
-* Emphasis on concise executive summaries
+* Separation between instructions and transcript content
+* Evidence-based analysis requirements
+* Structured output generation
+* Focus on concise executive summaries
+
+Although the current implementation uses rule-based analysis, the prompt architecture was designed to support future LLM integration.
 
 ## Time Spent
 
 Approximate time spent:
 
-* Case 1: ~12 hours
+* Case 1: ~10–12 hours
 
 ## Prioritization Rationale
 
-The focus was placed on building a reliable end-to-end pipeline for earnings call analysis before implementing advanced features.
+The primary focus was building a complete end-to-end pipeline before pursuing optional extensions.
 
 Priority was given to:
 
-* modular architecture
-* explainable outputs
-* structured reporting
+* Modular architecture
+* Explainable outputs
+* Structured reporting
+* Maintainability
+* Clear documentation
 
-rather than adding complex optional extensions.
+The objective was to deliver a functional and interpretable prototype rather than maximizing feature count.
 
 ## Main Limitations
 
-1. The current implementation uses rule-based sentiment analysis rather than a production-grade LLM.
-2. Comparison against previous quarters is not yet automated due to the absence of historical transcripts.
-3. Analyst question extraction currently requires transcripts containing a dedicated Q&A section.
+1. The current sentiment analysis relies on keyword-based rules and does not capture all linguistic nuances.
+2. Historical quarter comparisons are not yet automated because only a single transcript is analyzed at a time.
+3. Analyst question extraction currently requires transcripts containing dedicated Q&A sections.
 
 ## What I Would Add With Two More Weeks
 
-* Integration with GPT/Claude for deeper contextual reasoning
-* Automated comparison against previous earnings calls
-* Analyst Q&A extraction and response quality scoring
-* Citation tracking for every generated insight
-* Streamlit interface for interactive exploration
+* Integration with GPT or Claude for deeper contextual reasoning
+* Automated quarter-over-quarter comparison
+* Enhanced analyst Q&A extraction and response-quality scoring
+* Citation tracking for all generated insights
+* Streamlit interface for interactive analysis
+* Comparative analysis across multiple earnings calls
+
+## Future Improvements
+
+* Real earnings call datasets from Ibovespa companies
+* Advanced financial insight extraction
+* Multi-model evaluation
+* Self-critique and consistency validation
+* Market reaction analysis

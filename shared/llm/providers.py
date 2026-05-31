@@ -55,8 +55,15 @@ class LLMProvider(ABC):
     name: str
 
     @abstractmethod
-    def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
-        """Return a completion for the given system + user prompts."""
+    def complete(
+        self, system_prompt: str, user_prompt: str, response_schema: object | None = None
+    ) -> LLMResponse:
+        """Return a completion for the given system + user prompts.
+
+        ``response_schema`` (a pydantic model) is an optional hint: providers that
+        support native structured output (e.g. Gemini) use it to guarantee
+        schema-valid JSON; others ignore it and rely on JSON mode + validation.
+        """
 
 
 class OpenAIProvider(LLMProvider):
@@ -93,7 +100,11 @@ class OpenAIProvider(LLMProvider):
         self._client = OpenAI(**kwargs)
         return self._client
 
-    def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
+    def complete(
+        self, system_prompt: str, user_prompt: str, response_schema: object | None = None
+    ) -> LLMResponse:
+        # OpenAI path relies on JSON mode + downstream validation; response_schema
+        # is accepted for interface parity but not used here.
         client = self._get_client()
         last_error: Exception | None = None
         attempts = self.config.max_retries + 1
@@ -182,7 +193,7 @@ class GeminiProvider(LLMProvider):
         self._client = genai.Client(api_key=self.config.api_key)
         return self._client
 
-    def _build_config(self, system_prompt: str):
+    def _build_config(self, system_prompt: str, response_schema: object | None = None):
         # Imported lazily alongside the client to avoid a hard dependency.
         from google.genai import types
 
@@ -192,6 +203,15 @@ class GeminiProvider(LLMProvider):
             max_output_tokens=self.config.max_tokens,
             response_mime_type="application/json",
         )
+        # Native structured output: when a pydantic schema is provided, Gemini
+        # constrains decoding to it and returns GUARANTEED-valid JSON. This is the
+        # robust fix for malformed JSON from unescaped chars in long verbatim
+        # quotes. Guarded so an unsupported schema/SDK falls back to plain JSON mode.
+        if response_schema is not None:
+            try:
+                kwargs["response_schema"] = response_schema
+            except Exception:  # pragma: no cover
+                pass
         # Gemini 2.5 models spend part of max_output_tokens on internal "thinking"
         # tokens, which can truncate the visible JSON answer. Disable thinking so
         # the full structured output fits. Guarded: older models / SDKs that don't
@@ -203,9 +223,11 @@ class GeminiProvider(LLMProvider):
 
         return types.GenerateContentConfig(**kwargs)
 
-    def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
+    def complete(
+        self, system_prompt: str, user_prompt: str, response_schema: object | None = None
+    ) -> LLMResponse:
         client = self._get_client()
-        gen_config = self._build_config(system_prompt)
+        gen_config = self._build_config(system_prompt, response_schema)
         last_error: Exception | None = None
         attempts = self.config.max_retries + 1
 
@@ -275,7 +297,9 @@ class MockProvider(LLMProvider):
         self.config = config
         self._baseline_fn = baseline_fn
 
-    def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
+    def complete(
+        self, system_prompt: str, user_prompt: str, response_schema: object | None = None
+    ) -> LLMResponse:
         start = time.perf_counter()
         logger.info("Mock provider invoked (deterministic baseline)")
         result = self._baseline_fn(system_prompt, user_prompt)

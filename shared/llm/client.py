@@ -156,7 +156,9 @@ class LLMClient:
         last_exc: Exception | None = None
         for gen in range(1, regen_attempts + 1):
             try:
-                response = self.provider.complete(system_prompt, user_prompt)
+                response = self.provider.complete(
+                    system_prompt, user_prompt, response_schema=schema
+                )
                 data = self._parse_and_validate(response, schema)
                 source = SOURCE_MOCK if self.provider.name == "mock" else SOURCE_LLM
                 return GenerationResult(

@@ -59,17 +59,12 @@ flowchart TD
     "score": 6
   }
 }
+```
+
 ## Technologies
 
-* Python
-* Git
-* GitHub
-* JSON
-* Markdown
-
-## Future Improvements
-
-* Integration with LLMs (OpenAI, Claude, Gemini)
-* Enhanced sentiment analysis
-* Real earnings call transcripts
-* Advanced financial insight extraction
+- Python
+- Git
+- GitHub
+- JSON
+- Markdown

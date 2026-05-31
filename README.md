@@ -14,8 +14,10 @@ explicit, versioned **prompt engineering**:
 
 > **Reproducible with zero credentials.** With no API key the tools run in a
 > deterministic **mock** mode (output derived from the real input) so the demo
-> always works. With `OPENAI_API_KEY` set, the **real** generative-AI path runs.
-> See [Configuration](#configuration).
+> always works. With `GEMINI_API_KEY` set (free tier at
+> [Google AI Studio](https://aistudio.google.com/apikey)) the **real**
+> generative-AI path runs — `OPENAI_API_KEY` is also supported as an
+> alternative. See [Configuration](#configuration).
 
 ---
 
@@ -70,9 +72,11 @@ High level (full detail in [ARCHITECTURE.md](ARCHITECTURE.md)):
 flowchart TD
     IN[Input text] --> R[Prompt rendering<br/>versioned system + user templates]
     R --> CL[shared/llm: LLMClient]
-    CL -->|provider=openai| OAI[OpenAIProvider<br/>real GenAI]
+    CL -->|provider=gemini| GEM[GeminiProvider<br/>real GenAI - default]
+    CL -->|provider=openai| OAI[OpenAIProvider<br/>real GenAI - alt]
     CL -->|provider=mock| MK[MockProvider<br/>deterministic baseline]
-    OAI --> V[Parse + validate against<br/>pydantic schema]
+    GEM --> V[Parse + validate against<br/>pydantic schema]
+    OAI --> V
     MK --> V
     V -->|valid| OUT[Validated model]
     V -->|error| FB[Deterministic baseline<br/>fallback]
@@ -94,7 +98,7 @@ and sanity baseline — never presented as generative AI.
   report generator, entrypoint, data.
 - `case_2_macro_engine/` — same structure for Case 2.
 - `demo.py`, `Makefile` — one-command runners.
-- `tests/` — 44 automated tests (pytest).
+- `tests/` — 55 automated tests (pytest).
 
 ## Where generative AI is used
 
@@ -102,8 +106,9 @@ The model performs the **core extraction/reasoning** in both cases:
 
 - **Case 1:** `case_1_earnings_tracker/src/analyzer.py` →
   `shared/llm/client.py::LLMClient.generate_structured` →
-  `OpenAIProvider.complete` (`shared/llm/providers.py`), using JSON mode and the
-  versioned prompts in `case_1_earnings_tracker/prompts/`.
+  `GeminiProvider.complete` (or `OpenAIProvider.complete`) in
+  `shared/llm/providers.py`, using JSON mode and the versioned prompts in
+  `case_1_earnings_tracker/prompts/`.
 - **Case 2:** `case_2_macro_engine/src/macro_analyzer.py` → same client → same
   provider, with `case_2_macro_engine/prompts/`.
 
@@ -121,7 +126,8 @@ know"). Full rationale, variables, and evolution strategy are documented in
 ## Prerequisites
 - Python 3.10+ (developed and validated on 3.13).
 - `make` (optional; all commands have a plain-Python equivalent).
-- An OpenAI API key **only** for the real GenAI path (the demo works without).
+- A Gemini API key (free tier) **only** for the real GenAI path — or an OpenAI
+  key. The demo works without any key.
 
 ## Installation
 
@@ -143,9 +149,11 @@ cp .env.example .env
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `LLM_PROVIDER` | auto | `openai` or `mock`. Empty → auto (openai if a key exists, else mock). |
-| `OPENAI_API_KEY` | — | Required for the real path. Leave empty to force mock. |
-| `OPENAI_MODEL` | `gpt-4o-mini` | Chat model (JSON mode). |
+| `LLM_PROVIDER` | auto | `gemini`, `openai` or `mock`. Empty → auto (gemini key → gemini, else openai key → openai, else mock). |
+| `GEMINI_API_KEY` | — | Default real path. Free tier at [AI Studio](https://aistudio.google.com/apikey). `GOOGLE_API_KEY` also accepted. |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model (JSON mode via `response_mime_type`). |
+| `OPENAI_API_KEY` | — | Alternative real path. Leave empty to use Gemini/mock. |
+| `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model (JSON mode). |
 | `OPENAI_BASE_URL` | — | Optional OpenAI-compatible gateway. |
 | `LLM_TEMPERATURE` | `0.2` | Sampling temperature. |
 | `LLM_MAX_TOKENS` | `2000` | Max completion tokens. |
@@ -195,17 +203,18 @@ pytest -q             # or: make test
 make validate         # install + test + demo, end to end
 ```
 
-44 tests cover: provider selection, mock + real (stubbed) paths, retries, JSON
-parsing, schema validation, fallback, missing-config errors, both end-to-end
-flows, the report word limits, and the data files.
+55 tests cover: provider selection & precedence (Gemini default), the Gemini and
+OpenAI real paths (stubbed, no network), mock path, retries, JSON parsing, schema
+validation, fallback, missing-config errors, both end-to-end flows, the report
+word limits, and the data files.
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `OPENAI_API_KEY is not set` (real mode) | no key | export the key, or `LLM_PROVIDER=mock`. |
+| `GEMINI_API_KEY is not set` (real mode) | no key | export the key, or `LLM_PROVIDER=mock`. |
 | Output says `[FALLBACK]` | LLM call/parse failed | check `LLM_LOG_LEVEL=DEBUG`; output is still valid (baseline). |
-| `ModuleNotFoundError: openai` | deps not installed | `pip install -r requirements.txt`. |
+| `ModuleNotFoundError: google` / `openai` | deps not installed | `pip install -r requirements.txt`. |
 | Report slightly over word limit (real mode) | verbose model | lower `LLM_MAX_TOKENS` or tighten the prompt; the report generator clips defensively. |
 | Rate-limit / network errors | API issues | retries kick in; fallback guarantees a result. |
 
@@ -218,9 +227,10 @@ _Approximate, honest._
 | Shared LLM layer (providers, config, validation, fallback) | ~3 h |
 | Case 1 (prompts, schema, analyzer, report, bug fixes) | ~3 h |
 | Case 2 (prompts, schema, analyzer, report) | ~2 h |
-| Tests (44) | ~2 h |
+| Multi-provider support (Gemini default + OpenAI) | ~1 h |
+| Tests (55) | ~2 h |
 | Documentation (this README + 3 docs) | ~2 h |
-| **Total** | **~13.5 h** |
+| **Total** | **~14.5 h** |
 
 ## Prioritization rationale
 
@@ -256,14 +266,17 @@ for a defensible, demonstrable delivery than adding more thin extensions.
   substring of the transcript; reject/repair otherwise (closes limitation 3).
 - **Chunk-map-reduce + retrieval** for arbitrarily long transcripts (limitation 1).
 - **Self-critique loop**: a second LLM pass that critiques and revises the first.
-- **Multi-model comparison** (OpenAI vs. Anthropic) and a confidence calibration
-  study against realized outcomes (Case 2 backtest).
+- **Multi-model comparison**: the provider abstraction already supports Gemini
+  and OpenAI; next is running both on the same input and diffing/ensembling the
+  answers, plus a confidence-calibration study against realized outcomes (Case 2
+  backtest).
 - **Streamlit UI** for both cases and a small evaluation harness with gold labels.
 
 ## Risks
-- **API cost/availability** in real mode → mitigated by mock + fallback.
-- **Model drift** across versions → pinned model via `OPENAI_MODEL`; schema
-  validation catches contract breaks.
+- **API cost/availability** in real mode → mitigated by Gemini's free tier plus
+  mock + fallback.
+- **Model drift** across versions → pinned model via `GEMINI_MODEL` /
+  `OPENAI_MODEL`; schema validation catches contract breaks.
 - **Prompt-injection** from adversarial transcripts → system prompt restricts the
   model to the provided text; not exhaustively hardened (documented risk).
 

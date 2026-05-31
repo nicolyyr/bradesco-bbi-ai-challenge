@@ -55,6 +55,9 @@ def clean_env(monkeypatch):
     """Strip LLM-related env vars so config defaults are deterministic."""
     for var in (
         "LLM_PROVIDER",
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "GEMINI_MODEL",
         "OPENAI_API_KEY",
         "OPENAI_MODEL",
         "OPENAI_BASE_URL",

@@ -22,9 +22,10 @@ from typing import Callable, Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
-from .config import LLMConfig, load_config
+from .config import PROVIDER_GEMINI, PROVIDER_OPENAI, LLMConfig, load_config
 from .logging_utils import get_logger
 from .providers import (
+    GeminiProvider,
     LLMError,
     LLMProvider,
     LLMResponse,
@@ -105,8 +106,12 @@ class LLMClient:
                     "Mock provider requires a baseline_fn to derive output from input."
                 )
             self.provider = MockProvider(self.config, baseline_fn)
-        else:
+        elif self.config.provider == PROVIDER_GEMINI:
+            self.provider = GeminiProvider(self.config)
+        elif self.config.provider == PROVIDER_OPENAI:
             self.provider = OpenAIProvider(self.config)
+        else:  # pragma: no cover - resolve_provider guards against this
+            raise ValueError(f"Unsupported provider: {self.config.provider!r}")
         logger.info("LLMClient ready: %s", self.config.describe())
 
     def generate_structured(

@@ -25,35 +25,44 @@ cat case_1_earnings_tracker/outputs/analysis.json
 ```
 
 ## 2. Run the REAL generative-AI path (≈1 min)
+Default provider is **Gemini** (free tier — get a key at
+https://aistudio.google.com/apikey):
 ```bash
-export OPENAI_API_KEY=sk-...              # your key
-export OPENAI_MODEL=gpt-4o-mini           # optional
+export GEMINI_API_KEY=...                 # your free Gemini key
+export GEMINI_MODEL=gemini-2.5-flash      # optional
 python demo.py
 ```
-The banner now reads `[LLM] openai:gpt-4o-mini …`. Re-open the reports to show
-the richer, model-generated analysis. **This is the proof GenAI is wired in** —
-same command, different banner, different (model-authored) output.
+The banner now reads `[LLM] gemini:gemini-2.5-flash …`. Re-open the reports to
+show the richer, model-generated analysis. **This is the proof GenAI is wired
+in** — same command, different banner, different (model-authored) output.
+
+To run the alternative provider instead:
+```bash
+export OPENAI_API_KEY=sk-...              # banner: [LLM] openai:gpt-4o-mini …
+# or force one explicitly: LLM_PROVIDER=openai python demo.py
+```
 
 ## 3. Prove the AI is actually being used
-- Show `[LLM] openai:…` in the banner (only the real path prints this).
-- `grep -n "chat.completions" shared/llm/providers.py` → the real API call.
+- Show `[LLM] gemini:…` (or `openai:…`) in the banner — only the real path prints it.
+- `grep -n "generate_content\|chat.completions" shared/llm/providers.py` → the real API calls.
 - Show the versioned prompts: `case_*/prompts/system_prompt.txt`.
 - Turn on debug to see the call live: `LLM_LOG_LEVEL=DEBUG python demo.py`.
 
 ## 4. Show resilience (fallback) — optional
 Simulate a bad key to show the pipeline still returns a valid result:
 ```bash
-OPENAI_API_KEY=sk-invalid LLM_ALLOW_FALLBACK=true \
+GEMINI_API_KEY=invalid LLM_ALLOW_FALLBACK=true \
     python case_2_macro_engine/src/main.py
 # banner: [FALLBACK] deterministic baseline used after LLM failure
 ```
 
 ## 5. Show the tests (≈10 s)
 ```bash
-pytest -q                                 # 44 passed
+pytest -q                                 # 55 passed
 ```
-Call out: the real OpenAI path is unit-tested with a stubbed client (no network,
-no key), plus fallback, retries, schema validation, and both end-to-end flows.
+Call out: BOTH real paths (Gemini and OpenAI) are unit-tested with a stubbed
+client (no network, no key), plus fallback, retries, schema validation, provider
+precedence, and both end-to-end flows.
 
 ---
 
@@ -67,15 +76,16 @@ no key), plus fallback, retries, schema validation, and both end-to-end flows.
    [ARCHITECTURE.md](ARCHITECTURE.md): input → versioned prompts → `LLMClient`
    (real/mock) → parse+validate → fallback → JSON + report. Stress the
    separation of concerns.
-4. **Generative AI (1m).** Run `python demo.py` with a key → `[LLM]` banner.
-   Show `providers.py` and the prompts.
+4. **Generative AI (1m).** Run `python demo.py` with a free `GEMINI_API_KEY` →
+   `[LLM] gemini:…` banner. Show `providers.py` and the prompts. Note the same
+   abstraction also supports OpenAI.
 5. **Prompt engineering (1m).** Open `system_prompt.txt`: grounding, verbatim
    quotes, no hallucination, JSON contract. Tie to schema validation +
    [PROMPT_ENGINEERING.md](PROMPT_ENGINEERING.md).
 6. **Results (1m).** Walk the two reports. Case 1: verbatim red flags, surprise
    score, guidance change vs. Q4. Case 2: 5+5 sectors with transmission, 3+3
    tickers, risks, confidence.
-7. **Quality (30s).** `pytest -q` → 44 green. Mention mock/fallback reproducibility.
+7. **Quality (30s).** `pytest -q` → 55 green. Mention mock/fallback reproducibility.
 8. **Limitations (30s, honest).** Single-call extraction for long transcripts;
    mock is heuristic; no programmatic quote-grounding verifier yet (see README).
 9. **Close (15s).** Two-week roadmap: quote verifier, chunk-map-reduce,

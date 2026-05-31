@@ -6,6 +6,7 @@ import pytest
 from pydantic import BaseModel
 
 from shared.llm import (
+    GeminiProvider,
     LLMClient,
     LLMError,
     LLMResponse,
@@ -17,6 +18,7 @@ from shared.llm import (
 )
 from shared.llm.client import _extract_json
 from shared.llm.config import (
+    PROVIDER_GEMINI,
     PROVIDER_MOCK,
     PROVIDER_OPENAI,
     load_config,
@@ -38,22 +40,68 @@ def test_provider_resolves_to_mock_without_key(clean_env):
     assert cfg.is_mock is True
 
 
+def test_provider_resolves_to_gemini_with_key(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test-not-real")
+    cfg = load_config()
+    assert cfg.provider == PROVIDER_GEMINI
+    assert cfg.is_mock is False
+    assert cfg.model == "gemini-2.5-flash"
+    assert cfg.api_key == "gm-test-not-real"
+
+
+def test_google_api_key_also_selects_gemini(clean_env):
+    clean_env.setenv("GOOGLE_API_KEY", "gm-test-not-real")
+    assert load_config().provider == PROVIDER_GEMINI
+
+
 def test_provider_resolves_to_openai_with_key(clean_env):
     clean_env.setenv("OPENAI_API_KEY", "sk-test-not-real")
     cfg = load_config()
     assert cfg.provider == PROVIDER_OPENAI
     assert cfg.is_mock is False
+    assert cfg.model == "gpt-4o-mini"
 
 
-def test_explicit_provider_overrides_key(clean_env):
+def test_gemini_wins_when_both_keys_present(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test")
+    clean_env.setenv("OPENAI_API_KEY", "sk-test")
+    cfg = load_config()
+    assert cfg.provider == PROVIDER_GEMINI
+    assert cfg.api_key == "gm-test"  # the Gemini key, not the OpenAI one
+
+
+def test_explicit_provider_overrides_keys(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test")
     clean_env.setenv("OPENAI_API_KEY", "sk-test-not-real")
     clean_env.setenv("LLM_PROVIDER", "mock")
     assert load_config().provider == PROVIDER_MOCK
 
 
+def test_explicit_openai_overrides_gemini_key(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test")
+    clean_env.setenv("OPENAI_API_KEY", "sk-test")
+    clean_env.setenv("LLM_PROVIDER", "openai")
+    cfg = load_config()
+    assert cfg.provider == PROVIDER_OPENAI
+    assert cfg.api_key == "sk-test"
+
+
+def test_custom_models_via_env(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test")
+    clean_env.setenv("GEMINI_MODEL", "gemini-2.5-pro")
+    assert load_config().model == "gemini-2.5-pro"
+
+
 def test_resolve_provider_rejects_unknown():
     with pytest.raises(ValueError):
-        resolve_provider("gemini", api_key=None)
+        resolve_provider("anthropic", gemini_key=None, openai_key=None)
+
+
+def test_resolve_provider_precedence():
+    assert resolve_provider(None, "g", "o") == PROVIDER_GEMINI
+    assert resolve_provider(None, None, "o") == PROVIDER_OPENAI
+    assert resolve_provider(None, None, None) == PROVIDER_MOCK
+    assert resolve_provider("mock", "g", "o") == PROVIDER_MOCK
 
 
 # --------------------------------------------------------------------------- #
@@ -128,6 +176,91 @@ class _FakeOpenAIClient:
                 return _FakeCompletion(self._outer._content)
 
         self.chat = type("Chat", (), {"completions": _Completions(self)})()
+
+
+class _FakeGeminiClient:
+    """Mimics the subset of the google-genai SDK we use:
+    client.models.generate_content(...).text
+    """
+
+    def __init__(self, content='{"name": "real", "score": 9}', fail_times=0):
+        self._content = content
+        self._fail_times = fail_times
+        self.calls = 0
+
+        class _Models:
+            def __init__(self, outer):
+                self._outer = outer
+
+            def generate_content(self, **kwargs):
+                self._outer.calls += 1
+                if self._outer.calls <= self._outer._fail_times:
+                    raise RuntimeError("simulated transient API error")
+                return type("Resp", (), {"text": self._outer._content})
+
+        self.models = _Models(self)
+
+
+def test_gemini_provider_with_injected_client(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test")
+    cfg = load_config()
+    provider = GeminiProvider(cfg, client=_FakeGeminiClient())
+    client = LLMClient(config=cfg, provider=provider)
+    result = client.generate_structured(
+        system_prompt="sys",
+        user_prompt="usr",
+        schema=_Toy,
+        fallback_payload={"name": "fb", "score": 0},
+    )
+    assert result.source == SOURCE_LLM
+    assert result.provider == "gemini"
+    assert result.data.name == "real"
+    assert result.data.score == 9
+
+
+def test_gemini_provider_retries_then_succeeds(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test")
+    clean_env.setenv("LLM_MAX_RETRIES", "2")
+    cfg = load_config()
+    fake = _FakeGeminiClient(fail_times=1)
+    provider = GeminiProvider(cfg, client=fake)
+    resp = provider.complete("sys", "usr")
+    assert isinstance(resp, LLMResponse)
+    assert fake.calls == 2
+    assert resp.attempts == 2
+    assert resp.provider == "gemini"
+
+
+def test_gemini_provider_raises_after_exhausting_retries(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test")
+    clean_env.setenv("LLM_MAX_RETRIES", "1")
+    cfg = load_config()
+    provider = GeminiProvider(cfg, client=_FakeGeminiClient(fail_times=99))
+    with pytest.raises(LLMError):
+        provider.complete("sys", "usr")
+
+
+def test_gemini_provider_without_key_errors(clean_env):
+    clean_env.setenv("LLM_PROVIDER", "gemini")
+    cfg = load_config()
+    provider = GeminiProvider(cfg)  # no client, no key
+    with pytest.raises(LLMError):
+        provider.complete("sys", "usr")
+
+
+def test_gemini_fallback_on_invalid_json(clean_env):
+    clean_env.setenv("GEMINI_API_KEY", "gm-test")
+    cfg = load_config()
+    provider = GeminiProvider(cfg, client=_FakeGeminiClient(content="not json"))
+    client = LLMClient(config=cfg, provider=provider)
+    result = client.generate_structured(
+        system_prompt="sys",
+        user_prompt="usr",
+        schema=_Toy,
+        fallback_payload={"name": "fb", "score": 4},
+    )
+    assert result.source == SOURCE_FALLBACK
+    assert result.data.name == "fb"
 
 
 def test_openai_provider_with_injected_client(clean_env):

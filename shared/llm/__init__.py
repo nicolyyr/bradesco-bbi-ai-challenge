@@ -10,8 +10,21 @@ from .client import (
     SOURCE_LLM,
     SOURCE_MOCK,
 )
-from .config import LLMConfig, load_config
-from .providers import LLMError, LLMProvider, LLMResponse, MockProvider, OpenAIProvider
+from .config import (
+    PROVIDER_GEMINI,
+    PROVIDER_MOCK,
+    PROVIDER_OPENAI,
+    LLMConfig,
+    load_config,
+)
+from .providers import (
+    GeminiProvider,
+    LLMError,
+    LLMProvider,
+    LLMResponse,
+    MockProvider,
+    OpenAIProvider,
+)
 
 __all__ = [
     "GenerationResult",
@@ -20,9 +33,13 @@ __all__ = [
     "LLMError",
     "LLMProvider",
     "LLMResponse",
+    "GeminiProvider",
     "MockProvider",
     "OpenAIProvider",
     "load_config",
+    "PROVIDER_GEMINI",
+    "PROVIDER_OPENAI",
+    "PROVIDER_MOCK",
     "SOURCE_LLM",
     "SOURCE_MOCK",
     "SOURCE_FALLBACK",

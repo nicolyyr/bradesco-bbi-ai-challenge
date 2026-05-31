@@ -1,15 +1,21 @@
 """LLM provider abstraction.
 
 This module isolates *how* we talk to a model from *what* we ask it. Business
-logic depends only on the :class:`LLMProvider` interface and never imports the
-OpenAI SDK directly. Two concrete providers are shipped:
+logic depends only on the :class:`LLMProvider` interface and never imports a
+vendor SDK directly. Three concrete providers are shipped:
 
-* :class:`OpenAIProvider` - the real integration (requires ``OPENAI_API_KEY``).
+* :class:`GeminiProvider` - the default real integration (requires
+  ``GEMINI_API_KEY``). Google offers a free tier, so this is the lowest-friction
+  way to run the real generative-AI path.
+* :class:`OpenAIProvider` - alternative real integration (requires
+  ``OPENAI_API_KEY``). Lets the solution do a real multi-model comparison.
 * :class:`MockProvider`   - a deterministic, offline provider used for tests
   and credential-free demos. It delegates to a caller-supplied function so the
   mock answer is computed from the *actual* input rather than hardcoded.
 
-Both return a :class:`LLMResponse` with the raw text plus metadata useful for
+Both real SDKs are imported lazily, so the mock path and the test suite never
+require either package to be importable at module load time. All providers
+return a :class:`LLMResponse` with the raw text plus metadata useful for
 debugging and for proving in a demo which path produced the answer.
 """
 
@@ -140,6 +146,102 @@ class OpenAIProvider(LLMProvider):
 
         raise LLMError(
             f"OpenAI call failed after {attempts} attempt(s): {last_error}"
+        ) from last_error
+
+
+class GeminiProvider(LLMProvider):
+    """Real Google Gemini integration with retries and JSON-mode output.
+
+    Default real provider: Google offers a free tier, so this is the
+    lowest-friction way for a reviewer to exercise the genuine generative-AI
+    path. The ``google-genai`` SDK is imported lazily so the mock path and the
+    test suite never require it. A client can be injected for testing.
+    """
+
+    name = "gemini"
+
+    def __init__(self, config: LLMConfig, client: object | None = None) -> None:
+        self.config = config
+        self._client = client  # injectable for tests
+
+    def _get_client(self):
+        if self._client is not None:
+            return self._client
+        try:
+            from google import genai
+        except ImportError as exc:  # pragma: no cover - depends on env
+            raise LLMError(
+                "The 'google-genai' package is not installed. Run "
+                "'pip install -r requirements.txt' or use LLM_PROVIDER=mock."
+            ) from exc
+        if not self.config.api_key:
+            raise LLMError(
+                "GEMINI_API_KEY is not set. Export it or use LLM_PROVIDER=mock "
+                "for a credential-free demo."
+            )
+        self._client = genai.Client(api_key=self.config.api_key)
+        return self._client
+
+    def _build_config(self, system_prompt: str):
+        # Imported lazily alongside the client to avoid a hard dependency.
+        from google.genai import types
+
+        return types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            temperature=self.config.temperature,
+            max_output_tokens=self.config.max_tokens,
+            response_mime_type="application/json",
+        )
+
+    def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
+        client = self._get_client()
+        gen_config = self._build_config(system_prompt)
+        last_error: Exception | None = None
+        attempts = self.config.max_retries + 1
+
+        for attempt in range(1, attempts + 1):
+            start = time.perf_counter()
+            try:
+                logger.debug(
+                    "Gemini call attempt %s/%s (model=%s)",
+                    attempt,
+                    attempts,
+                    self.config.model,
+                )
+                response = client.models.generate_content(
+                    model=self.config.model,
+                    contents=user_prompt,
+                    config=gen_config,
+                )
+                latency_ms = (time.perf_counter() - start) * 1000
+                text = getattr(response, "text", "") or ""
+                logger.info(
+                    "Gemini call ok (model=%s, attempt=%s, %.0f ms)",
+                    self.config.model,
+                    attempt,
+                    latency_ms,
+                )
+                return LLMResponse(
+                    text=text,
+                    provider=self.name,
+                    model=self.config.model,
+                    attempts=attempt,
+                    latency_ms=latency_ms,
+                )
+            except Exception as exc:  # noqa: BLE001 - we re-raise as LLMError
+                last_error = exc
+                logger.warning(
+                    "Gemini call failed (attempt %s/%s): %s",
+                    attempt,
+                    attempts,
+                    exc,
+                )
+                # simple linear backoff; kept short for interactive demos
+                if attempt < attempts:
+                    time.sleep(min(2.0 * attempt, 5.0))
+
+        raise LLMError(
+            f"Gemini call failed after {attempts} attempt(s): {last_error}"
         ) from last_error
 
 

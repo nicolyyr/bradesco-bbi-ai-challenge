@@ -1,7 +1,8 @@
 # Core runtime dependencies for both cases.
 # Encoded as UTF-8 (the previous file was UTF-16, which can fail to parse on some pip setups).
 
-openai>=1.40,<3        # real LLM provider (chat.completions, JSON mode)
+google-genai>=1.0      # default real LLM provider (Gemini; free tier available)
+openai>=1.40,<3        # alternative real LLM provider (chat.completions, JSON mode)
 pydantic>=2.5,<3       # output-contract validation
 python-dotenv>=1.0,<2  # load local .env for configuration
 

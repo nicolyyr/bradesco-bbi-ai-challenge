@@ -51,7 +51,9 @@ Rendering happens in `case_1_.../parser.py::render_user_prompt` and inline in
 
 Three layers keep the output controllable and valid:
 
-1. **JSON mode** — `response_format={"type": "json_object"}` on the API call.
+1. **JSON mode** — enforced per provider: Gemini uses
+   `response_mime_type="application/json"`, OpenAI uses
+   `response_format={"type": "json_object"}`.
 2. **Explicit contract in the prompt** — the exact JSON skeleton with field
    names and allowed enum values is shown in the user message.
 3. **Schema validation** — the response is parsed (`_extract_json`, tolerant of

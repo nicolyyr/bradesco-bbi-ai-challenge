@@ -130,8 +130,7 @@ MACRO SCENARIO: The Central Bank unexpectedly raised interest rates by 2 pp ...
 - **Tighten, don't bloat.** Prefer sharper constraints (enums, counts, "verbatim")
   over longer prose; they reduce invalid responses more reliably.
 
-## AI assistance used
-This solution was built with AI coding assistants (as the case explicitly
-permits and expects). The prompt files above are the prompts *the running system
-sends to the model*; they are versioned so each architectural decision can be
-inspected and defended.
+## Note on the prompt files
+The prompt files documented above are the prompts *the running system sends to
+the model* at inference time. They are kept as versioned files so each
+architectural decision can be inspected, diffed, and defended.

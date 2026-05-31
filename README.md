@@ -12,13 +12,6 @@ explicit, versioned **prompt engineering**:
   top-5 benefited/hurt sectors with transmission mechanism, 3+3 B3 tickers,
   top-3 thesis risks, confidence score + a ≤500-word report.
 
-> **Reproducible with zero credentials.** With no API key the tools run in a
-> deterministic **mock** mode (output derived from the real input) so the demo
-> always works. With `GEMINI_API_KEY` set (free tier at
-> [Google AI Studio](https://aistudio.google.com/apikey)) the **real**
-> generative-AI path runs — `OPENAI_API_KEY` is also supported as an
-> alternative. See [Configuration](#configuration).
-
 ---
 
 ## Table of contents

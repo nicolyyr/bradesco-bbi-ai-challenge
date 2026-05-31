@@ -1,22 +1,39 @@
-from parser import load_transcript, split_text_into_chunks, load_prompt
+from parser import (
+    load_transcript,
+    split_text_into_chunks,
+    load_prompt,
+    load_analyst_questions
+)
 from analyzer import process_chunk, combine_chunk_analyses
 from report_generator import generate_report
 from utils import save_json, save_text
 
 transcript = load_transcript(
-    "case_1_earnings_tracker/data/sample_transcript.txt"
+    "case_1_earnings_tracker/data/itub4_q1_2026.txt"
 )
+
 
 prompt = load_prompt(
     "case_1_earnings_tracker/prompts/analysis_prompt.txt"
 )
 
-chunks = split_text_into_chunks(transcript, chunk_size=500)
+analyst_questions_text = load_analyst_questions(
+    "case_1_earnings_tracker/data/analyst_questions.txt"
+)
+
+chunks = split_text_into_chunks(
+    transcript,
+    chunk_size=500
+)
 
 chunk_analyses = []
 
 for chunk in chunks:
-    analysis = process_chunk(prompt, chunk)
+    analysis = process_chunk(
+        prompt,
+        chunk,
+        analyst_questions_text
+    )
     chunk_analyses.append(analysis)
 
 final_analysis = combine_chunk_analyses(chunk_analyses)

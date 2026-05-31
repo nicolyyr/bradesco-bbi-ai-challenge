@@ -1,6 +1,5 @@
 {
-    "scenario_summary": "Higher interest rates, persistent inflation and weaker economic growth.",
-    "confidence_score": 8,
+    "scenario_summary": "Scenario characterized by higher interest rates, persistent inflation, weaker growth expectations, slowing consumer spending, tighter credit conditions.",
     "positive_sectors": [
         {
             "sector": "Banks",
@@ -74,9 +73,11 @@
         }
     ],
     "market_risks": [
-        "Slower economic activity",
-        "Reduced consumer spending",
-        "Higher borrowing costs"
+        "Central bank pivots to easing sooner than expected, reversing the rate thesis.",
+        "Inflation surprises to the downside, reducing pressure on consumer names.",
+        "Growth proves more resilient than feared, lifting cyclical sectors."
     ],
-    "investment_view": "Defensive positioning with preference for financial institutions."
+    "confidence_score": 8,
+    "confidence_rationale": "Derived from 5 recognized macro signal(s) and 10 mapped sector impacts; deterministic baseline estimate.",
+    "investment_view": "Net defensive tilt: overweight banks-type exposure, underweight construction-type exposure."
 }

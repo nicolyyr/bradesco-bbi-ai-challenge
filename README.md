@@ -1,378 +1,273 @@
-# Bradesco BBI AI Challenge
+# Bradesco BBI AI Challenge — Equity Strategy Tech/AI Cases
 
-## Overview
+Two Python tools that turn unstructured financial text into structured,
+decision-grade equity-strategy intelligence using **generative AI** with
+explicit, versioned **prompt engineering**:
 
-This project was developed as part of the Bradesco BBI AI Challenge.
+- **Case 1 — Earnings Call Intelligence Tracker:** an earnings-call transcript →
+  structured analysis (tone with verbatim evidence, guidance changes vs. the
+  prior quarter, top analyst questions, linguistic red flags, surprise score) +
+  a ≤400-word executive report.
+- **Case 2 — Macro Scenario Engine:** a macro scenario in natural language →
+  top-5 benefited/hurt sectors with transmission mechanism, 3+3 B3 tickers,
+  top-3 thesis risks, confidence score + a ≤500-word report.
 
-The objective is to transform unstructured earnings call transcripts into structured financial insights that can support analysts, investors, and decision-makers in understanding company performance and management communication.
-
-The system processes earnings call transcripts, extracts relevant information, identifies management sentiment, summarizes key topics, highlights potential risks, and generates structured outputs in both JSON and Markdown formats.
-
----
-
-## Features
-
-* Transcript loading and preprocessing
-* Text chunking for large documents
-* Management tone classification
-* Key takeaways extraction
-* Guidance detection
-* Guidance change tracking structure
-* Analyst question extraction
-* Response quality assessment
-* Red flag identification
-* Surprise score generation
-* JSON output generation
-* Markdown report generation
+> **Reproducible with zero credentials.** With no API key the tools run in a
+> deterministic **mock** mode (output derived from the real input) so the demo
+> always works. With `OPENAI_API_KEY` set, the **real** generative-AI path runs.
+> See [Configuration](#configuration).
 
 ---
 
-## Project Structure
-
-```text
-case_1_earnings_tracker/
-├── data/
-│   ├── itub4_q1_2026.txt
-│   ├── itub4_q2_2026.txt
-│   └── analyst_questions.txt
-│
-├── outputs/
-│   ├── analysis.json
-│   └── report.md
-│
-├── prompts/
-│   └── analysis_prompt.txt
-│
-└── src/
-    ├── analyzer.py
-    ├── parser.py
-    ├── report_generator.py
-    ├── utils.py
-    └── main.py
-```
+## Table of contents
+1. [Problem & use case](#problem--use-case)
+2. [What the solution does](#what-the-solution-does)
+3. [Architecture](#architecture)
+4. [Where generative AI is used](#where-generative-ai-is-used)
+5. [Prompt engineering](#prompt-engineering)
+6. [Prerequisites](#prerequisites)
+7. [Installation](#installation)
+8. [Configuration](#configuration)
+9. [Running locally](#running-locally)
+10. [Demo](#demo)
+11. [Tests](#tests)
+12. [Troubleshooting](#troubleshooting)
+13. [Time log](#time-log)
+14. [Prioritization rationale](#prioritization-rationale)
+15. [Three most serious limitations](#three-most-serious-limitations)
+16. [If I had two more weeks](#if-i-had-two-more-weeks)
+17. [Risks](#risks)
 
 ---
 
-## Pipeline
+## Problem & use case
 
-```text
-Transcript
-    ↓
-Load Transcript
-    ↓
-Chunking
-    ↓
-Chunk Analysis
-    ↓
-Sentiment Classification
-    ↓
-Insight Extraction
-    ↓
-Aggregation
-    ↓
-JSON Output
-    ↓
-Markdown Report
-```
+Equity Strategy translates rich-but-unstructured inputs into actionable views.
+Two recurring, time-consuming tasks:
 
-### Workflow Diagram
+- **Earnings calls** (60–90 min) carry guidance, strategy signals and nuanced
+  Q&A that consensus takes days to digest. We want the signal in minutes.
+- **Macro → sector → ticker** translation is manual: read reports, debate
+  transmission channels, land on a sector view. We want a prototype that
+  accelerates that translation.
 
-```mermaid
-flowchart TD
-    A[Transcript] --> B[Load Transcript]
-    B --> C[Chunking]
-    C --> D[Process Chunk]
-    D --> E[Management Tone Analysis]
-    E --> F[Insight Extraction]
-    F --> G[Combine Results]
-    G --> H[JSON Output]
-    H --> I[Markdown Report]
-```
+Both tasks are explicitly *Tech/AI*: the challenge evaluates how software
+engineering is combined with **generative AI** and **prompt engineering**.
 
----
+## What the solution does
 
-## Generated Insights
-
-The system extracts and organizes the following information:
-
-### Management Tone
-
-Classifies management communication as:
-
-* Optimistic
-* Neutral
-* Pessimistic
-
-Includes supporting evidence and confidence score.
-
-### Key Takeaways
-
-Identifies major topics discussed during the earnings call, such as:
-
-* Profitability
-* Revenue trends
-* Credit quality
-* Portfolio growth
-* Operational efficiency
-
-### Guidance
-
-Detects management expectations regarding future performance and strategic outlook.
-
-### Guidance Changes
-
-Provides a structure for comparing management guidance across different quarters.
-
-### Analyst Questions
-
-Captures and organizes relevant analyst questions discussed during the earnings call.
-
-### Response Quality
-
-Summarizes management responses and provides a qualitative assessment.
-
-### Red Flags
-
-Highlights potential areas of concern such as:
-
-* Credit deterioration
-* Macroeconomic risks
-* Operational challenges
-* Uncertainty signals
-
-### Surprise Score
-
-Generates a score from 1 to 10 indicating the relevance or unexpected nature of information discussed during the call.
-
----
-
-## Example Output
-
-```json
-{
-  "company": "ITUB4",
-  "management_tone": {
-    "classification": "optimistic",
-    "confidence": 0.8
-  },
-  "key_takeaways": [
-    "Profitability and ROE sustainability were central themes in the call."
-  ],
-  "guidance": [
-    "Management stated it remains comfortable with current guidance."
-  ],
-  "surprise_score": {
-    "score": 5
-  }
-}
-```
-
----
-
-## Technologies Used
-
-* Python
-* Git
-* GitHub
-* JSON
-* Markdown
-
----
-
-## Current Limitations
-
-* Guidance comparison between quarters is partially implemented.
-* Analyst response summaries currently use rule-based extraction.
-* Sentiment analysis relies on keyword-based heuristics.
-* Earnings call transcripts require manual selection and preprocessing.
-
----
-
-## Future Improvements
-
-* LLM-powered transcript analysis
-* Automatic analyst question extraction
-* Multi-quarter comparison engine
-* Financial metric extraction
-* Company benchmarking
-* Interactive dashboard visualization
-* Vector database integration for semantic search
-
----
-
-## How to Run
-
-```bash
-python case_1_earnings_tracker/src/main.py
-```
-
-Outputs will be generated in:
-
-```text
-case_1_earnings_tracker/outputs/
-```
-
-Including:
-
-```text
-analysis.json
-report.md
-```
-# Case 2 — Macro Scenario Engine
-
-## Overview
-
-This project was developed as part of the Bradesco BBI AI Challenge.
-
-The objective is to transform macroeconomic scenarios described in natural language into structured investment insights for the Brazilian stock market.
-
-The engine maps macroeconomic conditions to sector impacts, identifies positively and negatively exposed stocks, highlights key risks, and generates analyst-friendly outputs.
-
----
-
-## Features
-
-* Natural language macro scenario input
-* Sector impact mapping
-* Top 5 positively impacted sectors
-* Top 5 negatively impacted sectors
-* Sector rationale generation
-* Positive ticker recommendations
-* Negative ticker recommendations
-* Investment thesis generation
-* Risk identification
-* Confidence scoring
-* JSON output
-* Markdown report generation
-
----
-
-## Project Structure
-
-```text
-case_2_macro_engine/
-├── data/
-│   └── scenario.txt
-│
-├── outputs/
-│   ├── analysis.json
-│   └── report.md
-│
-├── src/
-│   ├── main.py
-│   ├── macro_analyzer.py
-│   ├── sector_mapper.py
-│   ├── report_generator.py
-│   └── utils.py
-```
-
----
+| | Case 1 | Case 2 |
+|---|---|---|
+| Input | earnings transcript (+ analyst questions, + optional prior quarter) | macro scenario (free text / file / stdin) |
+| Core AI output | tone+evidence, takeaways, guidance, **guidance changes vs. prior quarter**, top-3 analyst Q&A, **verbatim red flags**, **surprise score** | top-5 +/− sectors with transmission mechanism, 3+3 B3 tickers, top-3 risks, confidence |
+| Deliverables | `analysis.json` + `report.md` (≤400 words) | `analysis.json` + `report.md` (≤500 words) |
 
 ## Architecture
 
-```text
-Scenario Input
-      ↓
-Macro Analysis
-      ↓
-Sector Mapping
-      ↓
-Ticker Mapping
-      ↓
-Risk Assessment
-      ↓
-JSON Output
-      ↓
-Markdown Report
+High level (full detail in [ARCHITECTURE.md](ARCHITECTURE.md)):
+
+```mermaid
+flowchart TD
+    IN[Input text] --> R[Prompt rendering<br/>versioned system + user templates]
+    R --> CL[shared/llm: LLMClient]
+    CL -->|provider=openai| OAI[OpenAIProvider<br/>real GenAI]
+    CL -->|provider=mock| MK[MockProvider<br/>deterministic baseline]
+    OAI --> V[Parse + validate against<br/>pydantic schema]
+    MK --> V
+    V -->|valid| OUT[Validated model]
+    V -->|error| FB[Deterministic baseline<br/>fallback]
+    FB --> OUT
+    OUT --> J[analysis.json]
+    OUT --> MD[report.md]
 ```
 
----
+**Separation of concerns:** business logic (`*/src/analyzer.py`,
+`macro_analyzer.py`) depends only on the case-agnostic `shared/llm` layer and
+never touches the SDK or parses JSON itself. The rule-based engines
+(`baseline.py`, `sector_mapper.py`) are used **only** as mock output, fallback,
+and sanity baseline — never presented as generative AI.
 
-## Example Scenario
+### Components
+- `shared/llm/` — provider abstraction, config (env), JSON parsing + schema
+  validation, retries, deterministic fallback, structured logging.
+- `case_1_earnings_tracker/` — Case 1 prompts, schema, baseline, analyzer,
+  report generator, entrypoint, data.
+- `case_2_macro_engine/` — same structure for Case 2.
+- `demo.py`, `Makefile` — one-command runners.
+- `tests/` — 44 automated tests (pytest).
 
-```text
-The Central Bank unexpectedly raised interest rates by 2 percentage points.
+## Where generative AI is used
 
-Inflation remains persistent and economic growth expectations have been revised downward.
+The model performs the **core extraction/reasoning** in both cases:
 
-Credit conditions are becoming tighter and consumer spending is slowing.
-```
+- **Case 1:** `case_1_earnings_tracker/src/analyzer.py` →
+  `shared/llm/client.py::LLMClient.generate_structured` →
+  `OpenAIProvider.complete` (`shared/llm/providers.py`), using JSON mode and the
+  versioned prompts in `case_1_earnings_tracker/prompts/`.
+- **Case 2:** `case_2_macro_engine/src/macro_analyzer.py` → same client → same
+  provider, with `case_2_macro_engine/prompts/`.
 
----
+Provenance is explicit at runtime: every run prints `[LLM]`, `[MOCK]`, or
+`[FALLBACK]` so you can prove which path produced the answer.
 
-## Generated Insights
+## Prompt engineering
 
-The engine provides:
+Prompts are **versioned files** (not inline strings), one `system_prompt.txt`
+and one `user_prompt.txt` per case, with an explicit JSON output contract and
+anti-hallucination rules (grounding, verbatim quotes, "say what you don't
+know"). Full rationale, variables, and evolution strategy are documented in
+[PROMPT_ENGINEERING.md](PROMPT_ENGINEERING.md).
 
-* Top 5 sectors expected to benefit
-* Top 5 sectors expected to be negatively affected
-* 3 positively exposed B3 tickers
-* 3 negatively exposed B3 tickers
-* Rationale for each recommendation
-* Top 3 risks to the thesis
-* Investment view
-* Confidence score
+## Prerequisites
+- Python 3.10+ (developed and validated on 3.13).
+- `make` (optional; all commands have a plain-Python equivalent).
+- An OpenAI API key **only** for the real GenAI path (the demo works without).
 
----
-
-## Example Output
-
-```json
-{
-  "confidence_score": 8,
-  "positive_sectors": [
-    {
-      "sector": "Banks"
-    }
-  ],
-  "negative_sectors": [
-    {
-      "sector": "Construction"
-    }
-  ]
-}
-```
-
----
-
-## Technologies
-
-* Python
-* Git
-* GitHub
-* JSON
-* Markdown
-
----
-
-## Limitations
-
-* Rule-based mapping approach.
-* Sector relationships are manually defined.
-* No historical backtesting.
-* No live market data integration.
-
----
-
-## Future Improvements
-
-* Historical backtesting
-* Scenario comparison
-* Confidence calibration
-* Streamlit interface
-* LLM-powered rationale generation
-* Dynamic market data integration
-
----
-
-## How to Run
+## Installation
 
 ```bash
+# from the repository root
+python3 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+# or simply:  make install
+```
+
+## Configuration
+
+Copy the template and edit as needed:
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `LLM_PROVIDER` | auto | `openai` or `mock`. Empty → auto (openai if a key exists, else mock). |
+| `OPENAI_API_KEY` | — | Required for the real path. Leave empty to force mock. |
+| `OPENAI_MODEL` | `gpt-4o-mini` | Chat model (JSON mode). |
+| `OPENAI_BASE_URL` | — | Optional OpenAI-compatible gateway. |
+| `LLM_TEMPERATURE` | `0.2` | Sampling temperature. |
+| `LLM_MAX_TOKENS` | `2000` | Max completion tokens. |
+| `LLM_MAX_RETRIES` | `2` | Retries on transient API errors. |
+| `LLM_ALLOW_FALLBACK` | `true` | Fall back to baseline on failure (recommended for demos). |
+| `LLM_LOG_LEVEL` | `INFO` | `DEBUG`/`INFO`/`WARNING`/`ERROR`. |
+
+**No secrets are committed.** `.env` is git-ignored; only `.env.example` (no
+keys) is tracked.
+
+## Running locally
+
+Each case runs from anywhere (paths resolve to the repo root):
+
+```bash
+# Case 1
+python case_1_earnings_tracker/src/main.py
+# custom inputs:
+python case_1_earnings_tracker/src/main.py --company ITUB4 \
+    --transcript case_1_earnings_tracker/data/itub4_q1_2026.txt \
+    --prior case_1_earnings_tracker/data/itub4_q4_2025.txt
+
+# Case 2
 python case_2_macro_engine/src/main.py
+python case_2_macro_engine/src/main.py --scenario case_2_macro_engine/data/scenario.txt
+echo "The Selic was cut 200bps amid an easing cycle." | \
+    python case_2_macro_engine/src/main.py --stdin
 ```
 
-Outputs are generated in:
+Outputs are written to each case's `outputs/{analysis.json,report.md}`.
 
-```text
-case_2_macro_engine/outputs/
+## Demo
+
+```bash
+python demo.py        # both cases   (or: make demo)
+python demo.py --case 1
+python demo.py --case 2
 ```
+
+Full presentation script in [DEMO.md](DEMO.md), including how to prove GenAI is
+in use and how to switch between mock and real modes live.
+
+## Tests
+
+```bash
+pytest -q             # or: make test
+make validate         # install + test + demo, end to end
+```
+
+44 tests cover: provider selection, mock + real (stubbed) paths, retries, JSON
+parsing, schema validation, fallback, missing-config errors, both end-to-end
+flows, the report word limits, and the data files.
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `OPENAI_API_KEY is not set` (real mode) | no key | export the key, or `LLM_PROVIDER=mock`. |
+| Output says `[FALLBACK]` | LLM call/parse failed | check `LLM_LOG_LEVEL=DEBUG`; output is still valid (baseline). |
+| `ModuleNotFoundError: openai` | deps not installed | `pip install -r requirements.txt`. |
+| Report slightly over word limit (real mode) | verbose model | lower `LLM_MAX_TOKENS` or tighten the prompt; the report generator clips defensively. |
+| Rate-limit / network errors | API issues | retries kick in; fallback guarantees a result. |
+
+## Time log
+_Approximate, honest._
+
+| Activity | Time |
+|---|---|
+| Reading the case, setup, data prep | ~1.5 h |
+| Shared LLM layer (providers, config, validation, fallback) | ~3 h |
+| Case 1 (prompts, schema, analyzer, report, bug fixes) | ~3 h |
+| Case 2 (prompts, schema, analyzer, report) | ~2 h |
+| Tests (44) | ~2 h |
+| Documentation (this README + 3 docs) | ~2 h |
+| **Total** | **~13.5 h** |
+
+## Prioritization rationale
+
+I invested in **both cores equally** and then **deepened Case 1** as the
+"extension" case. Reasoning: Case 1 is the harder NLP problem (long transcript,
+nuance, grounding, temporal comparison), so it best demonstrates prompt
+engineering and anti-hallucination discipline. Concretely, Case 1 received the
+extra investment via:
+- **Citation tracking** (verbatim evidence + verbatim red-flag quotes);
+- **Temporal comparison** (real guidance-change diff vs. a prior quarter);
+- a **self-correcting output contract** (schema validation + fallback).
+
+A cross-cutting investment benefiting both: the **multi-mode LLM layer**
+(real/mock/fallback) and a **44-test** safety net, which I judged more valuable
+for a defensible, demonstrable delivery than adding more thin extensions.
+
+## Three most serious limitations
+1. **Single-call extraction for long transcripts.** Case 1 sends the transcript
+   in one prompt. Very long calls can exceed context or dilute attention; there
+   is no chunk-map-reduce or retrieval step yet. *(Mitigation: the report stays
+   terse; full data is in JSON. Not yet solved for >context-window transcripts.)*
+2. **Mock/fallback is heuristic, not analytic.** When no key is present (or on
+   failure), output comes from keyword rules. It is honest (derived from input,
+   labelled `[MOCK]`/`[FALLBACK]`) but less nuanced than the LLM. Reviewers must
+   run the real path to judge true output quality.
+3. **No grounding verification of model claims.** In real mode we instruct the
+   model to quote verbatim, but we do not yet programmatically verify that each
+   returned quote is an exact substring of the source. A confident model could
+   still paraphrase. *(A verifier is the first item below.)*
+
+## If I had two more weeks
+- **Quote-grounding verifier**: assert every evidence/red-flag quote is a literal
+  substring of the transcript; reject/repair otherwise (closes limitation 3).
+- **Chunk-map-reduce + retrieval** for arbitrarily long transcripts (limitation 1).
+- **Self-critique loop**: a second LLM pass that critiques and revises the first.
+- **Multi-model comparison** (OpenAI vs. Anthropic) and a confidence calibration
+  study against realized outcomes (Case 2 backtest).
+- **Streamlit UI** for both cases and a small evaluation harness with gold labels.
+
+## Risks
+- **API cost/availability** in real mode → mitigated by mock + fallback.
+- **Model drift** across versions → pinned model via `OPENAI_MODEL`; schema
+  validation catches contract breaks.
+- **Prompt-injection** from adversarial transcripts → system prompt restricts the
+  model to the provided text; not exhaustively hardened (documented risk).
+
+---
+
+Author: Nicoly Santos · License: MIT (see [LICENSE](LICENSE)).
+Per-case detail: [Case 1](case_1_earnings_tracker/) · [Case 2](case_2_macro_engine/).

@@ -1,0 +1,67 @@
+Analyze the earnings-call transcript below for the company {company}.
+
+TASK
+Extract structured intelligence with these sections:
+
+1. management_tone
+   - classification: one of "optimistic", "neutral", "cautiously optimistic",
+     "cautiously pessimistic", "pessimistic".
+   - confidence: a number between 0 and 1 reflecting how clearly the transcript
+     supports the classification.
+   - evidence: 3 to 8 VERBATIM quotes from the transcript that justify the
+     classification. Copy them exactly.
+
+2. key_takeaways: 3 to 6 of the most material business insights (profitability,
+   revenue trends, credit quality, portfolio growth, efficiency, capital, etc.).
+
+3. guidance: explicit forward-looking statements / forecasts / targets the
+   management made. Quote or closely reference the transcript.
+
+4. guidance_changes: how guidance and themes changed VERSUS THE PRIOR QUARTER.
+   {guidance_changes_instruction}
+
+5. analyst_questions: the TOP 3 most critical questions asked by analysts and how
+   management answered. For each: question (paraphrase ok), response_summary, and
+   response_quality ("High", "Medium", or "Low") judging how directly and
+   completely management answered. Base this ONLY on the analyst-questions block
+   and the transcript answers below.
+
+6. red_flags: linguistic signals of hesitation, topic-changing, or evasion. For
+   each, provide a "quote" that is a VERBATIM excerpt from the transcript and a
+   "reason" explaining why it is a red flag. If there are none, return an empty
+   list.
+
+7. surprise_score: an object with "score" (integer 1-10) indicating how much of
+   what was said likely was NOT in pre-call market consensus, and a
+   "justification" string. Consider the whole transcript, not just the opening.
+
+OUTPUT CONTRACT (return ONLY this JSON object, no fences, no extra text):
+{{
+  "company": "{company}",
+  "management_tone": {{
+    "classification": "string",
+    "confidence": 0.0,
+    "evidence": ["verbatim quote", "..."]
+  }},
+  "key_takeaways": ["string", "..."],
+  "guidance": ["string", "..."],
+  "guidance_changes": [
+    {{"change": "string", "impact": "string"}}
+  ],
+  "analyst_questions": [
+    {{"question": "string", "response_summary": "string", "response_quality": "High|Medium|Low"}}
+  ],
+  "red_flags": [
+    {{"quote": "verbatim excerpt", "reason": "string"}}
+  ],
+  "surprise_score": {{"score": 0, "justification": "string"}}
+}}
+
+ANALYST QUESTIONS (use these to fill analyst_questions; if empty, infer from the
+Q&A inside the transcript):
+{analyst_questions}
+
+{prior_quarter_block}
+
+TRANSCRIPT (current quarter - your single source of truth):
+{transcript}

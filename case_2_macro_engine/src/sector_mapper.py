@@ -123,7 +123,16 @@ def map_sectors(scenario_text):
     positive_sectors = []
     negative_sectors = []
 
-    if "interest rates" in scenario_lower:
+    rate_hike = any(
+        cue in scenario_lower
+        for cue in ("interest rate", "raised rates", "rate hike", "tightening", "hiked")
+    ) or ("rates" in scenario_lower and "raised" in scenario_lower)
+    rate_cut = any(
+        cue in scenario_lower
+        for cue in ("rate cut", "cut rates", "lower interest", "easing", "loosening")
+    )
+
+    if rate_hike:
         positive_sectors.extend([
             {
                 "sector": "Banks",
@@ -176,6 +185,40 @@ def map_sectors(scenario_text):
             "rationale": "Lower growth expectations may reduce corporate investment and demand for capital equipment."
         })
 
+    if rate_cut:
+        positive_sectors.extend([
+            {
+                "sector": "Construction",
+                "rationale": "Lower rates improve mortgage affordability and housing demand, supporting developers."
+            },
+            {
+                "sector": "Retail",
+                "rationale": "Easier credit and cheaper financing tend to lift consumer demand and discretionary spending."
+            },
+            {
+                "sector": "Capital Goods",
+                "rationale": "Lower financing costs can revive corporate investment and equipment demand."
+            },
+        ])
+        negative_sectors.append({
+            "sector": "Banks",
+            "rationale": "Lower rates can compress net interest margins for large lenders."
+        })
+
+    # Robust fallback: if no macro cue was recognized, return a defensive-vs-cyclical
+    # split so the baseline never emits an empty result (audit fix).
+    if not positive_sectors and not negative_sectors:
+        positive_sectors.extend([
+            {"sector": "Utilities", "rationale": "Regulated, defensive cash flows are resilient when the macro signal is unclear."},
+            {"sector": "Oil & Gas", "rationale": "Cash-generative exporters offer ballast under uncertain conditions."},
+        ])
+        negative_sectors.extend([
+            {"sector": "Retail", "rationale": "Discretionary consumption is most exposed to an ambiguous demand outlook."},
+        ])
+
+    positive_sectors = _dedupe_sectors(positive_sectors)
+    negative_sectors = _dedupe_sectors(negative_sectors)
+
     positive_tickers = []
     negative_tickers = []
 
@@ -197,3 +240,15 @@ def map_sectors(scenario_text):
         "positive_tickers": positive_tickers[:3],
         "negative_tickers": negative_tickers[:3]
     }
+
+
+def _dedupe_sectors(sectors):
+    """Keep the first rationale seen for each sector name, preserving order."""
+    seen = set()
+    out = []
+    for item in sectors:
+        name = item["sector"]
+        if name not in seen:
+            seen.add(name)
+            out.append(item)
+    return out

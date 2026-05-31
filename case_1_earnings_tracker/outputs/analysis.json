@@ -1,68 +1,101 @@
 {
     "company": "ITUB4",
     "management_tone": {
-        "classification": "optimistic",
-        "confidence": 0.8,
+        "classification": "cautiously optimistic",
+        "confidence": 0.7,
         "evidence": [
             "The central point this quarter is that I will place somewhat greater emphasis on the credit quality of our portfolio.",
             "This is a topic of interest given tighter macroeconomic conditions, interest rates, and the economy as a whole.",
             "I will start with our traditional overview covering key indicators such as results, profitability, loan portfolio, non-interest expenses, and delinquency.",
-            "Beginning with results, we delivered a very strong managerial result of BRL 12.",
-            "Moving on to profitability, we recorded ROE of 24.",
-            "We saw an expansion in profitability adjusted for 11.",
-            "Consolidated ROE reached 25.",
-            "8% and ROE in Brazil reached 27.",
-            "This is fully aligned with the work we have been carrying out under our efficiency program and the targets that were set.",
-            "When we look at delinquency, you may recall that the first quarter is always more pressured.",
-            "Despite this, short-term delinquency indicators remain very well behaved.",
-            "Long-term delinquency remains absolutely stable, which reinforces the resilience and quality of our portfolio."
+            "Beginning with results, we delivered a very strong managerial result of BRL 12.3 billion in the first quarter, representing a 10% increase year-over-year.",
+            "Moving on to profitability, we recorded ROE of 24.8% on a consolidated basis and 26.4% in Brazil.",
+            "We saw an expansion in profitability adjusted for 11.5% capital, which is the current industry average and the lower bound of our capital appetite.",
+            "Consolidated ROE reached 25.8% and ROE in Brazil reached 27.6%.",
+            "This is fully aligned with the work we have been carrying out under our efficiency program and the targets that were set."
         ]
     },
     "key_takeaways": [
         "Profitability and ROE sustainability were central themes in the call.",
-        "Delinquency trends were discussed as an important risk monitoring point.",
+        "Credit quality and delinquency trends were a key risk-monitoring focus.",
         "Efficiency initiatives were highlighted as a driver of profitability.",
-        "Management reaffirmed comfort with current guidance."
+        "Management addressed its full-year guidance and its comfort with it.",
+        "Capital position and capital generation were discussed."
     ],
     "guidance": [
-        "Management stated it remains comfortable with current guidance.",
-        "Management expects profitability to remain above 20%."
+        "If you want a reference, we continue to aim for the midpoint of our guidance, which implies annual expense growth of 3.5%.",
+        "As mentioned, as Milton mentioned, we are very comfortable with the guidance that we have.",
+        "In the guidance that we gave at the beginning of the year, there is a profitability above 20%, and we are delivering this ROE recurrently.",
+        "Speaking of the guidance, the best answer that I can give you, we are comfortable with the guidance that is there.",
+        "We reaffirm the guidance.",
+        "There is a guidance of portfolio that we are still comfortable with what was published."
     ],
     "guidance_changes": [
         {
-            "change": "Previous quarter comparison not fully automated in current prototype.",
-            "impact": "The system is structured to support temporal comparison once prior-quarter transcripts are included."
+            "change": "guidance reaffirmation: stable emphasis (prior=5, current=5 mentions).",
+            "impact": "Narrative focus broadly consistent quarter-over-quarter."
+        },
+        {
+            "change": "delinquency / credit quality: increased emphasis (prior=6, current=38 mentions).",
+            "impact": "Shift in narrative focus quarter-over-quarter."
+        },
+        {
+            "change": "profitability / ROE: increased emphasis (prior=9, current=34 mentions).",
+            "impact": "Shift in narrative focus quarter-over-quarter."
+        },
+        {
+            "change": "efficiency: increased emphasis (prior=4, current=7 mentions).",
+            "impact": "Shift in narrative focus quarter-over-quarter."
+        },
+        {
+            "change": "macro / uncertainty: increased emphasis (prior=1, current=15 mentions).",
+            "impact": "Shift in narrative focus quarter-over-quarter."
+        },
+        {
+            "change": "capital: increased emphasis (prior=2, current=4 mentions).",
+            "impact": "Shift in narrative focus quarter-over-quarter."
         }
     ],
     "analyst_questions": [
         {
-            "question": "What are the next strategic priorities for Rede and the Desenrola program?",
-            "response_summary": "Management emphasized client-centric positioning, disciplined pricing, and integrated payments/receivables strategy.",
-            "response_quality": "Medium"
-        },
-        {
-            "question": "How sustainable is Itaú's ROE above 20%, and which profitability levers remain available?",
-            "response_summary": "Management highlighted value creation, cost of equity, efficiency, client margin, credit mix, and reaffirmed comfort with guidance.",
+            "question": "Good morning, Milton, Gabriel, Gustavo. Congratulations on the predictability of your results. Very constant, very predictable. I wanted to hear your initial impressions on the Desenrola program and on Rede. What are the next steps for Rede, especially regarding payouts and strategic positioning?",
+            "response_summary": "Welcome once again. Thank you for asking your question.",
             "response_quality": "High"
         },
         {
-            "question": "How do macro conditions and delinquency trends affect credit growth and guidance delivery?",
-            "response_summary": "Management acknowledged a tougher macro backdrop but emphasized portfolio resilience, disciplined provisioning, stable delinquency expectations, and reaffirmed guidance.",
+            "question": "I wanted to understand the trajectory of the bank's ROE. Itaú delivered a recurrent ROE of around 25%, even in a seasonally weaker quarter. How many levers remain available to maintain or expand this ROE throughout the year? Will sustainability come from client margin, efficiency, credit mix, service revenues, or ca...",
+            "response_summary": "Thank you, Bernardo. Thank you for the question.",
+            "response_quality": "High"
+        },
+        {
+            "question": "Delinquency has been intensifying according to macroeconomic data, although Itaú continues to perform better than the market. Considering current macroeconomic conditions, credit quality, and delinquency trends, are conditions better or worse than expected when guidance was established? Could these factors affect fu...",
+            "response_summary": "Thank you, Marcelo, for the questions. Well, objectively speaking, the conditions from the past to now are worse than the beginning of the year.",
             "response_quality": "High"
         }
     ],
     "red_flags": [
         {
-            "quote": "Delinquency discussed.",
-            "reason": "Credit quality remains an important monitoring point."
+            "quote": "When we look at delinquency, you may recall that the first quarter is always more pressured.",
+            "reason": "Contains hedging/uncertainty language ('pressure')."
         },
         {
-            "quote": "Challenges mentioned.",
-            "reason": "Management acknowledged external and operating challenges."
+            "quote": "Therefore, calendar effects were one of the main headwinds to margin this quarter.",
+            "reason": "Contains hedging/uncertainty language ('headwind')."
+        },
+        {
+            "quote": "This was a quarter marked by significant volatility, with many developments in both the local and global environments as you have been following.",
+            "reason": "Contains hedging/uncertainty language ('volatility')."
+        },
+        {
+            "quote": "The most important message is that in Brazil, we delivered a solid performance this quarter despite all the challenges.",
+            "reason": "Contains hedging/uncertainty language ('challenge')."
+        },
+        {
+            "quote": "The capital index hedge cost remains a headwind as it has historically due to interest rate differentials.",
+            "reason": "Contains hedging/uncertainty language ('headwind')."
         }
     ],
     "surprise_score": {
-        "score": 3,
-        "justification": "No major surprise identified in this chunk."
+        "score": 9,
+        "justification": "Baseline surprise estimate based on: record/all-time-best metrics mentioned; management disclosed data it normally withholds; explicit acknowledgement that conditions worsened; guidance reaffirmed despite a tougher macro backdrop."
     }
 }

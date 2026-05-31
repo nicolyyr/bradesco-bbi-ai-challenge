@@ -1,0 +1,41 @@
+Translate the macroeconomic scenario below into a structured view for the
+Brazilian stock market (B3).
+
+TASK
+Produce:
+
+1. scenario_summary: 1-2 sentences restating the scenario in your own words,
+   reflecting the ACTUAL input (do not use a generic template).
+
+2. positive_sectors: the TOP 5 sectors that benefit, each with a "sector" name
+   and a "rationale" (1-2 sentences) describing the transmission mechanism
+   specific to THIS scenario.
+
+3. negative_sectors: the TOP 5 sectors that are hurt, same structure.
+
+4. positive_tickers: 3 B3 tickers most positively exposed, each with "ticker"
+   and a "rationale" grounded in company characteristics.
+
+5. negative_tickers: 3 B3 tickers most negatively exposed, same structure.
+
+6. market_risks: the TOP 3 risks that would prevent this thesis from
+   materializing.
+
+7. confidence_score: an integer 1-10 reflecting how confident you are in the
+   transmission, with a "confidence_rationale" string explaining the number.
+
+OUTPUT CONTRACT (return ONLY this JSON object, no fences, no extra text):
+{{
+  "scenario_summary": "string",
+  "positive_sectors": [{{"sector": "string", "rationale": "string"}}],
+  "negative_sectors": [{{"sector": "string", "rationale": "string"}}],
+  "positive_tickers": [{{"ticker": "string", "rationale": "string"}}],
+  "negative_tickers": [{{"ticker": "string", "rationale": "string"}}],
+  "market_risks": ["string", "string", "string"],
+  "confidence_score": 0,
+  "confidence_rationale": "string",
+  "investment_view": "string (1-2 sentences: net positioning implied)"
+}}
+
+MACRO SCENARIO (your single source of truth):
+{scenario}

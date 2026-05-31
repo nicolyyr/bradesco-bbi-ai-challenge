@@ -1,65 +1,40 @@
+# Earnings Call Intelligence Report — ITUB4
 
-# Earnings Call Intelligence Report
+_Source: [MOCK] deterministic baseline (no API key / LLM_PROVIDER=mock)_
 
 ## Management Tone
-Classification: **optimistic**
+**cautiously optimistic** (confidence 0.70)
 
-Confidence: **0.8**
-
-Evidence:
 > The central point this quarter is that I will place somewhat greater emphasis on the credit quality of our portfolio.
 > This is a topic of interest given tighter macroeconomic conditions, interest rates, and the economy as a whole.
 > I will start with our traditional overview covering key indicators such as results, profitability, loan portfolio, non-interest expenses, and delinquency.
-> Beginning with results, we delivered a very strong managerial result of BRL 12.
-> Moving on to profitability, we recorded ROE of 24.
-> We saw an expansion in profitability adjusted for 11.
-> Consolidated ROE reached 25.
-> 8% and ROE in Brazil reached 27.
-> This is fully aligned with the work we have been carrying out under our efficiency program and the targets that were set.
-> When we look at delinquency, you may recall that the first quarter is always more pressured.
-> Despite this, short-term delinquency indicators remain very well behaved.
-> Long-term delinquency remains absolutely stable, which reinforces the resilience and quality of our portfolio.
 
 ## Key Takeaways
 - Profitability and ROE sustainability were central themes in the call.
-- Delinquency trends were discussed as an important risk monitoring point.
+- Credit quality and delinquency trends were a key risk-monitoring focus.
 - Efficiency initiatives were highlighted as a driver of profitability.
-- Management reaffirmed comfort with current guidance.
+- Management addressed its full-year guidance and its comfort with it.
+- Capital position and capital generation were discussed.
 
 ## Guidance
-- Management stated it remains comfortable with current guidance.
-- Management expects profitability to remain above 20%.
+- If you want a reference, we continue to aim for the midpoint of our guidance, which implies annual…
+- As mentioned, as Milton mentioned, we are very comfortable with the guidance that we have.
+- In the guidance that we gave at the beginning of the year, there is a profitability above 20%…
 
-## Guidance Changes
-- Previous quarter comparison not fully automated in current prototype. (The system is structured to support temporal comparison once prior-quarter transcripts are included.)
+## Guidance Changes (vs. prior quarter)
+- guidance reaffirmation: stable emphasis (prior=5, current=5 mentions).
+- delinquency / credit quality: increased emphasis (prior=6, current=38 mentions).
+- profitability / ROE: increased emphasis (prior=9, current=34 mentions).
 
-## Analyst Questions
-### Question
-What are the next strategic priorities for Rede and the Desenrola program?
-
-**Response Summary:** Management emphasized client-centric positioning, disciplined pricing, and integrated payments/receivables strategy.
-
-**Response Quality:** Medium
-
-### Question
-How sustainable is Itaú's ROE above 20%, and which profitability levers remain available?
-
-**Response Summary:** Management highlighted value creation, cost of equity, efficiency, client margin, credit mix, and reaffirmed comfort with guidance.
-
-**Response Quality:** High
-
-### Question
-How do macro conditions and delinquency trends affect credit growth and guidance delivery?
-
-**Response Summary:** Management acknowledged a tougher macro backdrop but emphasized portfolio resilience, disciplined provisioning, stable delinquency expectations, and reaffirmed guidance.
-
-**Response Quality:** High
+## Top Analyst Questions
+- **Q1** (High): Good morning, Milton, Gabriel, Gustavo. Congratulations on the predictability of your results. Very constant, very predictable…
+- **Q2** (High): I wanted to understand the trajectory of the bank's ROE. Itaú delivered a recurrent ROE of…
+- **Q3** (High): Delinquency has been intensifying according to macroeconomic data, although Itaú continues to perform better than the…
 
 ## Red Flags
-- Delinquency discussed. (Credit quality remains an important monitoring point.)
-- Challenges mentioned. (Management acknowledged external and operating challenges.)
+- "When we look at delinquency, you may recall that the first quarter is always more pressured." — Contains hedging/uncertainty language ('pressure').
+- "Therefore, calendar effects were one of the main headwinds to margin this quarter." — Contains hedging/uncertainty language ('headwind').
+- "This was a quarter marked by significant volatility, with many developments in both the local and…" — Contains hedging/uncertainty language ('volatility').
 
 ## Surprise Score
-Score: **3/10**
-
-No major surprise identified in this chunk.
+**9/10** — Baseline surprise estimate based on: record/all-time-best metrics mentioned; management disclosed data it normally withholds; explicit acknowledgement that conditions worsened; guidance reaffirmed despite a tougher macro backdrop.

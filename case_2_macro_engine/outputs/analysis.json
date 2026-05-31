@@ -1,0 +1,28 @@
+{
+    "scenario_summary": "Higher interest rates, persistent inflation and weaker economic growth.",
+    "positive_sectors": [
+        "Banks"
+    ],
+    "negative_sectors": [
+        "Construction",
+        "Retail",
+        "Consumer Discretionary",
+        "Consumer Goods"
+    ],
+    "positive_tickers": [
+        "ITUB4",
+        "BBAS3",
+        "BBDC4"
+    ],
+    "negative_tickers": [
+        "MRVE3",
+        "CYRE3",
+        "EZTC3"
+    ],
+    "market_risks": [
+        "Slower economic activity",
+        "Reduced consumer spending",
+        "Higher borrowing costs"
+    ],
+    "investment_view": "Defensive positioning with preference for financial institutions."
+}

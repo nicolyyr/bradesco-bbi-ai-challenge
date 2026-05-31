@@ -1,23 +1,76 @@
 {
     "scenario_summary": "Higher interest rates, persistent inflation and weaker economic growth.",
     "positive_sectors": [
-        "Banks"
+        {
+            "sector": "Banks",
+            "rationale": "Higher interest rates may support net interest income and credit spreads for large banks."
+        },
+        {
+            "sector": "Insurance",
+            "rationale": "Insurers can benefit from higher yields on financial reserves and investment portfolios."
+        },
+        {
+            "sector": "Utilities",
+            "rationale": "Defensive sectors may attract investors during periods of weaker growth and higher uncertainty."
+        },
+        {
+            "sector": "Oil & Gas",
+            "rationale": "Companies with strong cash generation may be relatively resilient in risk-off environments."
+        },
+        {
+            "sector": "Pulp & Paper",
+            "rationale": "Export-oriented companies may benefit from currency depreciation associated with weaker domestic growth."
+        }
     ],
     "negative_sectors": [
-        "Construction",
-        "Retail",
-        "Consumer Discretionary",
-        "Consumer Goods"
+        {
+            "sector": "Construction",
+            "rationale": "Higher interest rates increase financing costs and reduce housing affordability."
+        },
+        {
+            "sector": "Retail",
+            "rationale": "Retailers are pressured by tighter credit conditions and weaker consumer demand."
+        },
+        {
+            "sector": "Consumer Goods",
+            "rationale": "Persistent inflation can pressure margins and reduce household purchasing power."
+        },
+        {
+            "sector": "Consumer Discretionary",
+            "rationale": "Slower consumer spending directly affects discretionary purchases and services."
+        },
+        {
+            "sector": "Capital Goods",
+            "rationale": "Lower growth expectations may reduce corporate investment and demand for capital equipment."
+        }
     ],
     "positive_tickers": [
-        "ITUB4",
-        "BBAS3",
-        "BBDC4"
+        {
+            "ticker": "ITUB4",
+            "rationale": "Large incumbent bank with strong balance sheet and ability to benefit from higher interest income."
+        },
+        {
+            "ticker": "BBAS3",
+            "rationale": "Credit-focused bank that may benefit from higher rates, although asset quality must be monitored."
+        },
+        {
+            "ticker": "BBDC4",
+            "rationale": "Major private bank with exposure to credit spreads and financial intermediation."
+        }
     ],
     "negative_tickers": [
-        "MRVE3",
-        "CYRE3",
-        "EZTC3"
+        {
+            "ticker": "MRVE3",
+            "rationale": "Higher interest rates pressure mortgage affordability and housing demand."
+        },
+        {
+            "ticker": "CYRE3",
+            "rationale": "Real estate developers are sensitive to financing costs and weaker demand."
+        },
+        {
+            "ticker": "MGLU3",
+            "rationale": "Consumer discretionary retailers are pressured by tighter credit and weaker spending."
+        }
     ],
     "market_risks": [
         "Slower economic activity",

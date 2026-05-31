@@ -1,22 +1,27 @@
 def generate_report(analysis):
     positive_sectors = "\n".join(
-        f"- {sector}" for sector in analysis["positive_sectors"]
+        f"- {item['sector']}: {item['rationale']}"
+        for item in analysis["positive_sectors"]
     )
 
     negative_sectors = "\n".join(
-        f"- {sector}" for sector in analysis["negative_sectors"]
+        f"- {item['sector']}: {item['rationale']}"
+        for item in analysis["negative_sectors"]
     )
 
     positive_tickers = "\n".join(
-        f"- {ticker}" for ticker in analysis["positive_tickers"]
+        f"- {item['ticker']}: {item['rationale']}"
+        for item in analysis["positive_tickers"]
     )
 
     negative_tickers = "\n".join(
-        f"- {ticker}" for ticker in analysis["negative_tickers"]
+        f"- {item['ticker']}: {item['rationale']}"
+        for item in analysis["negative_tickers"]
     )
 
     risks = "\n".join(
-        f"- {risk}" for risk in analysis["market_risks"]
+        f"- {risk}"
+        for risk in analysis["market_risks"]
     )
 
     report = f"""
@@ -26,23 +31,23 @@ def generate_report(analysis):
 
 {analysis["scenario_summary"]}
 
-## Positive Sectors
+## Top Benefited Sectors
 
 {positive_sectors}
 
-## Negative Sectors
+## Top Negatively Impacted Sectors
 
 {negative_sectors}
 
-## Positive Tickers
+## Positive Exposure Tickers
 
 {positive_tickers}
 
-## Negative Tickers
+## Negative Exposure Tickers
 
 {negative_tickers}
 
-## Market Risks
+## Main Risks
 
 {risks}
 

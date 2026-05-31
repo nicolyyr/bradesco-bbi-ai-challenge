@@ -218,3 +218,161 @@ Including:
 analysis.json
 report.md
 ```
+# Case 2 — Macro Scenario Engine
+
+## Overview
+
+This project was developed as part of the Bradesco BBI AI Challenge.
+
+The objective is to transform macroeconomic scenarios described in natural language into structured investment insights for the Brazilian stock market.
+
+The engine maps macroeconomic conditions to sector impacts, identifies positively and negatively exposed stocks, highlights key risks, and generates analyst-friendly outputs.
+
+---
+
+## Features
+
+* Natural language macro scenario input
+* Sector impact mapping
+* Top 5 positively impacted sectors
+* Top 5 negatively impacted sectors
+* Sector rationale generation
+* Positive ticker recommendations
+* Negative ticker recommendations
+* Investment thesis generation
+* Risk identification
+* Confidence scoring
+* JSON output
+* Markdown report generation
+
+---
+
+## Project Structure
+
+```text
+case_2_macro_engine/
+├── data/
+│   └── scenario.txt
+│
+├── outputs/
+│   ├── analysis.json
+│   └── report.md
+│
+├── src/
+│   ├── main.py
+│   ├── macro_analyzer.py
+│   ├── sector_mapper.py
+│   ├── report_generator.py
+│   └── utils.py
+```
+
+---
+
+## Architecture
+
+```text
+Scenario Input
+      ↓
+Macro Analysis
+      ↓
+Sector Mapping
+      ↓
+Ticker Mapping
+      ↓
+Risk Assessment
+      ↓
+JSON Output
+      ↓
+Markdown Report
+```
+
+---
+
+## Example Scenario
+
+```text
+The Central Bank unexpectedly raised interest rates by 2 percentage points.
+
+Inflation remains persistent and economic growth expectations have been revised downward.
+
+Credit conditions are becoming tighter and consumer spending is slowing.
+```
+
+---
+
+## Generated Insights
+
+The engine provides:
+
+* Top 5 sectors expected to benefit
+* Top 5 sectors expected to be negatively affected
+* 3 positively exposed B3 tickers
+* 3 negatively exposed B3 tickers
+* Rationale for each recommendation
+* Top 3 risks to the thesis
+* Investment view
+* Confidence score
+
+---
+
+## Example Output
+
+```json
+{
+  "confidence_score": 8,
+  "positive_sectors": [
+    {
+      "sector": "Banks"
+    }
+  ],
+  "negative_sectors": [
+    {
+      "sector": "Construction"
+    }
+  ]
+}
+```
+
+---
+
+## Technologies
+
+* Python
+* Git
+* GitHub
+* JSON
+* Markdown
+
+---
+
+## Limitations
+
+* Rule-based mapping approach.
+* Sector relationships are manually defined.
+* No historical backtesting.
+* No live market data integration.
+
+---
+
+## Future Improvements
+
+* Historical backtesting
+* Scenario comparison
+* Confidence calibration
+* Streamlit interface
+* LLM-powered rationale generation
+* Dynamic market data integration
+
+---
+
+## How to Run
+
+```bash
+python case_2_macro_engine/src/main.py
+```
+
+Outputs are generated in:
+
+```text
+case_2_macro_engine/outputs/
+```

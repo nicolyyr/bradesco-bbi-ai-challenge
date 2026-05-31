@@ -40,7 +40,25 @@ flowchart TD
     F --> G[JSON Output]
     G --> H[Markdown Report]
 ```
+## Example Output
 
+```json
+{
+  "company": "Sample Company",
+  "management_tone": {
+    "classification": "optimistic",
+    "confidence": 0.80
+  },
+  "key_takeaways": [
+    "Revenue increased by 15% year-over-year."
+  ],
+  "guidance": [
+    "Management expects strong performance next quarter."
+  ],
+  "surprise_score": {
+    "score": 6
+  }
+}
 ## Technologies
 
 * Python

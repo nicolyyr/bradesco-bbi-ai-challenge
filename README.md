@@ -1,72 +1,175 @@
 # Bradesco BBI AI Challenge
 
-Project developed as part of the Bradesco BBI AI Challenge.
-
 ## Overview
 
-This project aims to analyze earnings call transcripts and transform unstructured financial discussions into structured insights.
+This project was developed as part of the Bradesco BBI AI Challenge.
 
-The system processes transcripts, identifies management sentiment, extracts key takeaways, highlights potential risks, and generates structured reports.
+The objective is to transform unstructured earnings call transcripts into structured financial insights that can support analysts, investors, and decision-makers in understanding company performance and management communication.
+
+The system processes earnings call transcripts, extracts relevant information, identifies management sentiment, summarizes key topics, highlights potential risks, and generates structured outputs in both JSON and Markdown formats.
+
+---
 
 ## Features
 
-* Transcript loading
-* Prompt-based analysis workflow
+* Transcript loading and preprocessing
 * Text chunking for large documents
-* Sentiment classification
-* Structured JSON output
-* Markdown report generation
-* Guidance analysis
-* Red flag detection
+* Management tone classification
+* Key takeaways extraction
+* Guidance detection
+* Guidance change tracking structure
+* Analyst question extraction
+* Response quality assessment
+* Red flag identification
 * Surprise score generation
+* JSON output generation
+* Markdown report generation
+
+---
 
 ## Project Structure
 
 ```text
 case_1_earnings_tracker/
 ├── data/
+│   ├── itub4_q1_2026.txt
+│   ├── itub4_q2_2026.txt
+│   └── analyst_questions.txt
+│
 ├── outputs/
+│   ├── analysis.json
+│   └── report.md
+│
 ├── prompts/
+│   └── analysis_prompt.txt
+│
 └── src/
+    ├── analyzer.py
+    ├── parser.py
+    ├── report_generator.py
+    ├── utils.py
+    └── main.py
 ```
+
+---
 
 ## Pipeline
 
-Transcript → Chunking → Analysis → Aggregation → JSON → Report
+```text
+Transcript
+    ↓
+Load Transcript
+    ↓
+Chunking
+    ↓
+Chunk Analysis
+    ↓
+Sentiment Classification
+    ↓
+Insight Extraction
+    ↓
+Aggregation
+    ↓
+JSON Output
+    ↓
+Markdown Report
+```
+
+### Workflow Diagram
 
 ```mermaid
 flowchart TD
     A[Transcript] --> B[Load Transcript]
     B --> C[Chunking]
     C --> D[Process Chunk]
-    D --> E[Sentiment Analysis]
-    E --> F[Combine Results]
-    F --> G[JSON Output]
-    G --> H[Markdown Report]
+    D --> E[Management Tone Analysis]
+    E --> F[Insight Extraction]
+    F --> G[Combine Results]
+    G --> H[JSON Output]
+    H --> I[Markdown Report]
 ```
+
+---
+
+## Generated Insights
+
+The system extracts and organizes the following information:
+
+### Management Tone
+
+Classifies management communication as:
+
+* Optimistic
+* Neutral
+* Pessimistic
+
+Includes supporting evidence and confidence score.
+
+### Key Takeaways
+
+Identifies major topics discussed during the earnings call, such as:
+
+* Profitability
+* Revenue trends
+* Credit quality
+* Portfolio growth
+* Operational efficiency
+
+### Guidance
+
+Detects management expectations regarding future performance and strategic outlook.
+
+### Guidance Changes
+
+Provides a structure for comparing management guidance across different quarters.
+
+### Analyst Questions
+
+Captures and organizes relevant analyst questions discussed during the earnings call.
+
+### Response Quality
+
+Summarizes management responses and provides a qualitative assessment.
+
+### Red Flags
+
+Highlights potential areas of concern such as:
+
+* Credit deterioration
+* Macroeconomic risks
+* Operational challenges
+* Uncertainty signals
+
+### Surprise Score
+
+Generates a score from 1 to 10 indicating the relevance or unexpected nature of information discussed during the call.
+
+---
 
 ## Example Output
 
 ```json
 {
-  "company": "Sample Company",
+  "company": "ITUB4",
   "management_tone": {
     "classification": "optimistic",
-    "confidence": 0.80
+    "confidence": 0.8
   },
   "key_takeaways": [
-    "Revenue increased by 15% year-over-year."
+    "Profitability and ROE sustainability were central themes in the call."
   ],
   "guidance": [
-    "Management expects strong performance next quarter."
+    "Management stated it remains comfortable with current guidance."
   ],
   "surprise_score": {
-    "score": 6
+    "score": 5
   }
 }
 ```
 
-## Technologies
+---
+
+## Technologies Used
 
 * Python
 * Git
@@ -74,69 +177,44 @@ flowchart TD
 * JSON
 * Markdown
 
-## Architecture
+---
 
-The solution follows a modular pipeline architecture:
+## Current Limitations
 
-* `main.py`: orchestrates the workflow
-* `parser.py`: transcript ingestion and chunk generation
-* `analyzer.py`: sentiment analysis, guidance extraction, red flag detection, and insight generation
-* `report_generator.py`: executive report generation in Markdown
-* `utils.py`: file persistence and output handling
+* Guidance comparison between quarters is partially implemented.
+* Analyst response summaries currently use rule-based extraction.
+* Sentiment analysis relies on keyword-based heuristics.
+* Earnings call transcripts require manual selection and preprocessing.
 
-## Prompt Engineering Decisions
-
-The project uses a structured prompt approach designed to encourage consistent outputs and reduce ambiguity.
-
-Key decisions:
-
-* Explicit JSON schema definition
-* Separation between instructions and transcript content
-* Evidence-based analysis requirements
-* Structured output generation
-* Focus on concise executive summaries
-
-Although the current implementation uses rule-based analysis, the prompt architecture was designed to support future LLM integration.
-
-## Time Spent
-
-Approximate time spent:
-
-* Case 1: ~10–12 hours
-
-## Prioritization Rationale
-
-The primary focus was building a complete end-to-end pipeline before pursuing optional extensions.
-
-Priority was given to:
-
-* Modular architecture
-* Explainable outputs
-* Structured reporting
-* Maintainability
-* Clear documentation
-
-The objective was to deliver a functional and interpretable prototype rather than maximizing feature count.
-
-## Main Limitations
-
-1. The current sentiment analysis relies on keyword-based rules and does not capture all linguistic nuances.
-2. Historical quarter comparisons are not yet automated because only a single transcript is analyzed at a time.
-3. Analyst question extraction currently requires transcripts containing dedicated Q&A sections.
-
-## What I Would Add With Two More Weeks
-
-* Integration with GPT or Claude for deeper contextual reasoning
-* Automated quarter-over-quarter comparison
-* Enhanced analyst Q&A extraction and response-quality scoring
-* Citation tracking for all generated insights
-* Streamlit interface for interactive analysis
-* Comparative analysis across multiple earnings calls
+---
 
 ## Future Improvements
 
-* Real earnings call datasets from Ibovespa companies
-* Advanced financial insight extraction
-* Multi-model evaluation
-* Self-critique and consistency validation
-* Market reaction analysis
+* LLM-powered transcript analysis
+* Automatic analyst question extraction
+* Multi-quarter comparison engine
+* Financial metric extraction
+* Company benchmarking
+* Interactive dashboard visualization
+* Vector database integration for semantic search
+
+---
+
+## How to Run
+
+```bash
+python case_1_earnings_tracker/src/main.py
+```
+
+Outputs will be generated in:
+
+```text
+case_1_earnings_tracker/outputs/
+```
+
+Including:
+
+```text
+analysis.json
+report.md
+```

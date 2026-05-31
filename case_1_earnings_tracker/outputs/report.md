@@ -7,26 +7,20 @@ Classification: **pessimistic**
 Confidence: **0.8**
 
 Evidence:
-> Good morning everyone.
-
-Revenue declined by 20% compared to last year.
-
-We are facing significant challenges in demand.
-
-There is uncertainty regarding future performance.
-
-The company expects weak re
+> Revenue declined by 20% compared to last year.
 
 ## Key Takeaways
-- No clear revenue takeaway identified in this chunk.
+- Revenue declined compared to the previous period.
 
 ## Guidance
-- Management expects strong performance next quarter.
+- Negative outlook for next quarter.
 
 ## Red Flags
-- No red flags identified. (No significant negative signals were detected.)
+- Revenue decline detected. (Potential deterioration in financial performance.)
+- Uncertainty mentioned. (Future outlook may be less predictable.)
+- Weak performance indicators. (Potential operational or market challenges.)
 
 ## Surprise Score
-Score: **3/10**
+Score: **7/10**
 
-No major surprise identified in this chunk.
+A 20% revenue decline may represent a significant negative surprise.

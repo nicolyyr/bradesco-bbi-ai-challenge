@@ -4,23 +4,34 @@
         "classification": "pessimistic",
         "confidence": 0.8,
         "evidence": [
-            "Good morning everyone.\n\nRevenue declined by 20% compared to last year.\n\nWe are facing significant challenges in demand.\n\nThere is uncertainty regarding future performance.\n\nThe company expects weak re"
+            "Revenue declined by 20% compared to last year.",
+            "We are facing significant challenges in demand.",
+            "There is uncertainty regarding future performance.",
+            "The company expects weak results next quarter."
         ]
     },
     "key_takeaways": [
-        "No clear revenue takeaway identified in this chunk."
+        "Revenue declined compared to the previous period."
     ],
     "guidance": [
-        "Management expects strong performance next quarter."
+        "Negative outlook for next quarter."
     ],
     "red_flags": [
         {
-            "quote": "No red flags identified.",
-            "reason": "No significant negative signals were detected."
+            "quote": "Revenue decline detected.",
+            "reason": "Potential deterioration in financial performance."
+        },
+        {
+            "quote": "Uncertainty mentioned.",
+            "reason": "Future outlook may be less predictable."
+        },
+        {
+            "quote": "Weak performance indicators.",
+            "reason": "Potential operational or market challenges."
         }
     ],
     "surprise_score": {
-        "score": 3,
-        "justification": "No major surprise identified in this chunk."
+        "score": 7,
+        "justification": "A 20% revenue decline may represent a significant negative surprise."
     }
 }

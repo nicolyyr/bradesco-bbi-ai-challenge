@@ -30,6 +30,16 @@ case_1_earnings_tracker/
 ## Pipeline
 
 Transcript → Chunking → Analysis → Aggregation → JSON → Report
+```mermaid
+flowchart TD
+    A[Transcript] --> B[Load Transcript]
+    B --> C[Chunking]
+    C --> D[Process Chunk]
+    D --> E[Sentiment Analysis]
+    E --> F[Combine Results]
+    F --> G[JSON Output]
+    G --> H[Markdown Report]
+```
 
 ## Technologies
 

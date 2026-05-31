@@ -90,7 +90,7 @@ and sanity baseline — never presented as generative AI.
   report generator, entrypoint, data.
 - `case_2_macro_engine/` — same structure for Case 2.
 - `demo.py`, `Makefile` — one-command runners.
-- `tests/` — 55 automated tests (pytest).
+- `tests/` — 56 automated tests (pytest).
 
 ## Where generative AI is used
 
@@ -184,7 +184,7 @@ pytest -q             # or: make test
 make validate         # install + test + demo, end to end
 ```
 
-55 tests cover: provider selection & precedence (Gemini default), the Gemini and
+56 tests cover: provider selection & precedence (Gemini default), the Gemini and
 OpenAI real paths (stubbed, no network), mock path, retries, JSON parsing, schema
 validation, fallback, missing-config errors, both end-to-end flows, the report
 word limits, and the data files.
@@ -209,7 +209,7 @@ _Approximate, honest._
 | Case 1 (prompts, schema, analyzer, report, bug fixes) | ~3 h |
 | Case 2 (prompts, schema, analyzer, report) | ~2 h |
 | Multi-provider support (Gemini default + OpenAI) | ~1 h |
-| Tests (55) | ~2 h |
+| Tests (56) | ~2 h |
 | Documentation (this README + 3 docs) | ~2 h |
 | **Total** | **~14.5 h** |
 
@@ -225,7 +225,7 @@ extra investment via:
 - a **self-correcting output contract** (schema validation + fallback).
 
 A cross-cutting investment benefiting both: the **multi-mode LLM layer**
-(real/mock/fallback) and a **44-test** safety net, which I judged more valuable
+(real/mock/fallback) and a **56-test** safety net, which I judged more valuable
 for a defensible, demonstrable delivery than adding more thin extensions.
 
 ## Three most serious limitations

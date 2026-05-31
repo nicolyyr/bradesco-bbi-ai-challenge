@@ -57,6 +57,19 @@ def test_rate_cut_branch_changes_view():
     assert "Construction" in sectors or "Retail" in sectors
 
 
+def test_cutting_interest_rates_does_not_trigger_hike_branch():
+    """Regression: 'cutting interest rates' contains the substring 'interest rate'
+    and previously triggered the rate-HIKE branch (Banks positive). A detected cut
+    must suppress the hike branch."""
+    cut = map_sectors(
+        "The Central Bank announced an aggressive easing cycle, cutting interest rates sharply."
+    )
+    pos = [s["sector"] for s in cut["positive_sectors"]]
+    neg = [s["sector"] for s in cut["negative_sectors"]]
+    assert "Banks" not in pos, "rate cut must not mark Banks as a beneficiary"
+    assert "Banks" in neg, "rate cut compresses bank margins -> Banks negative"
+
+
 def test_unrecognized_scenario_still_returns_sectors():
     """Audit fix: previously an unknown scenario produced empty sector lists."""
     payload = c2_baseline.build_baseline("Geopolitical tensions rose in a distant region.")

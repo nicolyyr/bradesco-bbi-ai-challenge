@@ -195,18 +195,43 @@ def _split_answers(transcript: str) -> dict:
     return sections
 
 
+# Sentences dominated by these cues are greetings/pleasantries, not substance.
+_PLEASANTRY_CUES = [
+    "thank you", "thanks", "welcome", "congratulations", "good morning",
+    "good afternoon", "great to see", "thank you for the question",
+    "thank you for asking", "appreciate", "nice to", "pleasure",
+]
+
+
+def _is_pleasantry(sentence: str) -> bool:
+    """True if the sentence is mostly a greeting/thanks rather than content."""
+    low = sentence.lower()
+    if not any(cue in low for cue in _PLEASANTRY_CUES):
+        return False
+    # Short, cue-dominated sentences are pure pleasantries; long ones that merely
+    # open with "thank you" but then carry content are kept.
+    return len(sentence.split()) <= 12
+
+
 def _summarize_answer(answer: str) -> tuple[str, str]:
     if not answer:
-        return ("Management response not isolated by the baseline parser.", "Medium")
+        return ("Management response not isolated by the baseline parser.", "Low")
+
     sentences = split_sentences(answer)
-    summary = " ".join(sentences[:2]) if sentences else answer[:200]
-    if len(summary) > 280:
-        summary = summary[:277] + "..."
-    # quality heuristic: longer, more specific answers grade higher
-    words = len(answer.split())
-    if words > 180:
+    # Skip leading greetings/pleasantries so the summary captures real substance.
+    substantive = [s for s in sentences if not _is_pleasantry(s)]
+    chosen = substantive[:2] if substantive else sentences[:2]
+
+    summary = " ".join(chosen) if chosen else answer[:200]
+    if len(summary) > 300:
+        summary = summary[:297] + "..."
+
+    # Quality reflects the SUBSTANTIVE content (after stripping pleasantries),
+    # not the raw length of an answer padded with greetings.
+    substantive_words = sum(len(s.split()) for s in substantive)
+    if substantive_words > 150:
         quality = "High"
-    elif words > 60:
+    elif substantive_words > 50:
         quality = "Medium"
     else:
         quality = "Low"

@@ -58,7 +58,7 @@ GEMINI_API_KEY=invalid LLM_ALLOW_FALLBACK=true \
 
 ## 5. Show the tests (≈10 s)
 ```bash
-pytest -q                                 # 55 passed
+pytest -q                                 # 56 passed
 ```
 Call out: BOTH real paths (Gemini and OpenAI) are unit-tested with a stubbed
 client (no network, no key), plus fallback, retries, schema validation, provider
@@ -85,7 +85,7 @@ precedence, and both end-to-end flows.
 6. **Results (1m).** Walk the two reports. Case 1: verbatim red flags, surprise
    score, guidance change vs. Q4. Case 2: 5+5 sectors with transmission, 3+3
    tickers, risks, confidence.
-7. **Quality (30s).** `pytest -q` → 55 green. Mention mock/fallback reproducibility.
+7. **Quality (30s).** `pytest -q` → 56 green. Mention mock/fallback reproducibility.
 8. **Limitations (30s, honest).** Single-call extraction for long transcripts;
    mock is heuristic; no programmatic quote-grounding verifier yet (see README).
 9. **Close (15s).** Two-week roadmap: quote verifier, chunk-map-reduce,

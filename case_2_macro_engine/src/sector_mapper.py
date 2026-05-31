@@ -123,13 +123,21 @@ def map_sectors(scenario_text):
     positive_sectors = []
     negative_sectors = []
 
-    rate_hike = any(
-        cue in scenario_lower
-        for cue in ("interest rate", "raised rates", "rate hike", "tightening", "hiked")
-    ) or ("rates" in scenario_lower and "raised" in scenario_lower)
+    # Detect a rate CUT first. Its cues ("cut/lower/easing") can co-occur with the
+    # substring "interest rate" (e.g. "cutting interest rates"), so a detected cut
+    # SUPPRESSES the hike branch to avoid the bug where an easing scenario wrongly
+    # triggered the rate-hike sectors.
     rate_cut = any(
         cue in scenario_lower
-        for cue in ("rate cut", "cut rates", "lower interest", "easing", "loosening")
+        for cue in ("rate cut", "cut rates", "cutting interest", "cut interest",
+                    "lower interest", "lowered interest", "easing", "loosening")
+    )
+    rate_hike = (not rate_cut) and (
+        any(
+            cue in scenario_lower
+            for cue in ("interest rate", "raised rates", "rate hike", "tightening", "hiked")
+        )
+        or ("rates" in scenario_lower and "raised" in scenario_lower)
     )
 
     if rate_hike:

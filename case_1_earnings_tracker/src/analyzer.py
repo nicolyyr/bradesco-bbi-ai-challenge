@@ -25,11 +25,9 @@ from shared.llm import GenerationResult, LLMClient, load_config  # noqa: E402
 from shared.llm.logging_utils import get_logger  # noqa: E402
 
 try:  # package-style import
-    from .baseline import build_baseline
     from .parser import render_user_prompt
     from .schema import EarningsAnalysis
 except ImportError:  # script-style import (python src/main.py)
-    from baseline import build_baseline  # type: ignore
     from parser import render_user_prompt  # type: ignore
     from schema import EarningsAnalysis  # type: ignore
 
@@ -46,26 +44,15 @@ def analyze_earnings_call(
     prior_transcript: Optional[str] = None,
     client: Optional[LLMClient] = None,
 ) -> tuple[EarningsAnalysis, GenerationResult]:
-    """Run the full analysis and return (validated_analysis, provenance).
+    """Run the full analysis with generative AI and return (analysis, provenance).
 
-    The deterministic baseline is computed once and reused as (a) the mock
-    provider's output and (b) the fallback payload, so the pipeline always
-    yields a schema-valid result even with no API key or on an LLM error.
+    The prompt carries the transcript, the analyst questions and (optionally) the
+    prior-quarter transcript; the model performs the extraction and the
+    quarter-over-quarter guidance comparison. The result is validated against
+    :class:`EarningsAnalysis`.
     """
-    baseline_payload = build_baseline(
-        transcript=transcript,
-        company=company,
-        analyst_questions_text=analyst_questions_text,
-        prior_transcript=prior_transcript,
-    )
-
-    def baseline_fn(_system: str, _user: str) -> dict:
-        # Mock provider derives its answer from the real input via the baseline.
-        return baseline_payload
-
     if client is None:
-        config = load_config()
-        client = LLMClient(config=config, baseline_fn=baseline_fn)
+        client = LLMClient(config=load_config())
 
     rendered_user = render_user_prompt(
         user_prompt_template,
@@ -79,7 +66,6 @@ def analyze_earnings_call(
         system_prompt=system_prompt,
         user_prompt=rendered_user,
         schema=EarningsAnalysis,
-        fallback_payload=baseline_payload,
     )
     logger.info("Case 1 analysis produced via %s", result.source)
     return result.data, result  # type: ignore[return-value]

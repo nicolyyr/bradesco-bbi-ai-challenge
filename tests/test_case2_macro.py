@@ -1,4 +1,4 @@
-"""Tests for Case 2 (Macro Scenario Engine)."""
+"""Tests for Case 2 (Macro Scenario Engine) - pure-LLM."""
 
 from __future__ import annotations
 
@@ -8,13 +8,11 @@ import os
 import pytest
 
 from shared.llm import LLMClient, load_config
-from shared.llm.providers import OpenAIProvider
+from shared.llm.providers import GeminiProvider
 
-from case_2_macro_engine.src import baseline as c2_baseline
 from case_2_macro_engine.src.macro_analyzer import analyze_macro_scenario
 from case_2_macro_engine.src.report_generator import generate_report
 from case_2_macro_engine.src.schema import MacroAnalysis
-from case_2_macro_engine.src.sector_mapper import map_sectors
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 C2 = os.path.join(REPO_ROOT, "case_2_macro_engine")
@@ -25,129 +23,82 @@ def _load(name):
         return fh.read()
 
 
-# --------------------------------------------------------------------------- #
-# Baseline derives from input (audit fix: no more hardcoded constants)
-# --------------------------------------------------------------------------- #
-def test_summary_reflects_input(sample_scenario):
-    payload = c2_baseline.build_baseline(sample_scenario)
-    # must mention recognized signals, not be a constant string
-    assert "interest rates" in payload["scenario_summary"].lower()
+_VALID_PAYLOAD = {
+    "scenario_summary": "Aggressive monetary tightening with weaker growth.",
+    "positive_sectors": [
+        {"sector": "Banks", "rationale": "Higher rates lift net interest income."},
+        {"sector": "Insurance", "rationale": "Higher yields on float."},
+        {"sector": "Utilities", "rationale": "Defensive cash flows."},
+        {"sector": "Oil & Gas", "rationale": "Cash-generative, resilient."},
+        {"sector": "Pulp & Paper", "rationale": "FX-benefiting exporters."},
+    ],
+    "negative_sectors": [
+        {"sector": "Construction", "rationale": "Financing costs rise."},
+        {"sector": "Retail", "rationale": "Tighter credit hurts demand."},
+        {"sector": "Consumer Discretionary", "rationale": "Spending slows."},
+        {"sector": "Capital Goods", "rationale": "Investment appetite falls."},
+        {"sector": "Real Estate", "rationale": "Rate-sensitive demand."},
+    ],
+    "positive_tickers": [
+        {"ticker": "ITUB4", "rationale": "Rate-sensitive incumbent lender."},
+        {"ticker": "BBAS3", "rationale": "Credit-focused bank."},
+        {"ticker": "PETR4", "rationale": "Cash-generative producer."},
+    ],
+    "negative_tickers": [
+        {"ticker": "MRVE3", "rationale": "Mortgage-exposed builder."},
+        {"ticker": "MGLU3", "rationale": "Discretionary e-commerce."},
+        {"ticker": "CYRE3", "rationale": "Real-estate developer."},
+    ],
+    "market_risks": [
+        "Central bank pivots to easing sooner than expected.",
+        "Inflation surprises to the downside.",
+        "Growth proves more resilient than feared.",
+    ],
+    "confidence_score": 7,
+    "confidence_rationale": "Clear transmission channels for a rate shock.",
+    "investment_view": "Overweight financials, underweight rate-sensitive cyclicals.",
+}
 
 
-def test_summary_differs_across_scenarios():
-    hike = c2_baseline.build_baseline("The Central Bank raised interest rates sharply.")
-    cut = c2_baseline.build_baseline("The Central Bank announced a large rate cut and easing.")
-    assert hike["scenario_summary"] != cut["scenario_summary"]
+class _FakeGeminiClient:
+    def __init__(self, payload):
+        self._text = json.dumps(payload)
+
+        class _Models:
+            def generate_content(self_inner, **kwargs):
+                return type("Resp", (), {"text": self._text})
+
+        self.models = _Models()
 
 
-def test_confidence_is_derived_not_constant():
-    rich = c2_baseline.build_baseline(
-        "Interest rates up, inflation persistent, growth expectations down, "
-        "consumer spending slowing, credit tightening."
-    )
-    poor = c2_baseline.build_baseline("Something vague happened in the economy.")
-    assert rich["confidence_score"] != poor["confidence_score"]
-    assert 1 <= rich["confidence_score"] <= 10
-    assert 1 <= poor["confidence_score"] <= 10
-
-
-def test_rate_cut_branch_changes_view():
-    cut = c2_baseline.build_baseline("The Central Bank announced a rate cut and easing cycle.")
-    sectors = [s["sector"] for s in cut["positive_sectors"]]
-    assert "Construction" in sectors or "Retail" in sectors
-
-
-def test_cutting_interest_rates_does_not_trigger_hike_branch():
-    """Regression: 'cutting interest rates' contains the substring 'interest rate'
-    and previously triggered the rate-HIKE branch (Banks positive). A detected cut
-    must suppress the hike branch."""
-    cut = map_sectors(
-        "The Central Bank announced an aggressive easing cycle, cutting interest rates sharply."
-    )
-    pos = [s["sector"] for s in cut["positive_sectors"]]
-    neg = [s["sector"] for s in cut["negative_sectors"]]
-    assert "Banks" not in pos, "rate cut must not mark Banks as a beneficiary"
-    assert "Banks" in neg, "rate cut compresses bank margins -> Banks negative"
-
-
-def test_unrecognized_scenario_still_returns_sectors():
-    """Audit fix: previously an unknown scenario produced empty sector lists."""
-    payload = c2_baseline.build_baseline("Geopolitical tensions rose in a distant region.")
-    assert payload["positive_sectors"], "expected a non-empty defensive fallback"
-    assert payload["negative_sectors"]
-
-
-# --------------------------------------------------------------------------- #
-# Sector mapper structure
-# --------------------------------------------------------------------------- #
-def test_map_sectors_counts(sample_scenario):
-    mapping = map_sectors(sample_scenario)
-    assert len(mapping["positive_sectors"]) <= 5
-    assert len(mapping["negative_sectors"]) <= 5
-    assert len(mapping["positive_tickers"]) <= 3
-    assert len(mapping["negative_tickers"]) <= 3
-
-
-def test_tickers_are_b3_format(sample_scenario):
-    mapping = map_sectors(sample_scenario)
-    for t in mapping["positive_tickers"] + mapping["negative_tickers"]:
-        assert t["ticker"][:4].isalpha()
-        assert any(ch.isdigit() for ch in t["ticker"])  # B3 tickers end in a number
-
-
-# --------------------------------------------------------------------------- #
-# Schema validation
-# --------------------------------------------------------------------------- #
-def test_baseline_validates(sample_scenario):
-    payload = c2_baseline.build_baseline(sample_scenario)
-    model = MacroAnalysis.model_validate(payload)
-    assert 1 <= model.confidence_score <= 10
-
-
-# --------------------------------------------------------------------------- #
-# Full flow (mock + real stub + fallback)
-# --------------------------------------------------------------------------- #
-def test_full_flow_mock(clean_env, sample_scenario):
-    clean_env.setenv("LLM_PROVIDER", "mock")
-    analysis, result = analyze_macro_scenario(
-        sample_scenario,
-        system_prompt=_load("system_prompt.txt"),
-        user_prompt_template=_load("user_prompt.txt"),
-    )
-    assert isinstance(analysis, MacroAnalysis)
-    assert result.source == "mock"
-    report = generate_report(analysis, source_banner=result.banner())
-    assert "Macro Scenario Analysis" in report
-    assert len(report.split()) <= 500
-
-
-class _FakeOpenAI:
-    def __init__(self, content):
-        class _C:
-            def create(self_inner, **kwargs):
-                msg = type("M", (), {"content": content})
-                choice = type("Ch", (), {"message": msg})
-                return type("Comp", (), {"choices": [choice]})
-
-        self.chat = type("Chat", (), {"completions": _C()})()
-
-
-def test_full_flow_real_stub(clean_env, sample_scenario):
-    clean_env.setenv("OPENAI_API_KEY", "sk-test")
-    payload = {
-        "scenario_summary": "Aggressive monetary tightening with weaker growth.",
-        "positive_sectors": [{"sector": "Banks", "rationale": "NII expands with rates."}],
-        "negative_sectors": [{"sector": "Construction", "rationale": "Financing costs rise."}],
-        "positive_tickers": [{"ticker": "ITUB4", "rationale": "Rate-sensitive lender."}],
-        "negative_tickers": [{"ticker": "MRVE3", "rationale": "Mortgage-exposed builder."}],
-        "market_risks": ["Sooner-than-expected easing", "Inflation undershoot", "Global shock"],
-        "confidence_score": 7,
-        "confidence_rationale": "Clear transmission channels.",
-        "investment_view": "Overweight financials, underweight builders.",
-    }
+def _client_with(payload, monkeypatch):
+    monkeypatch.setenv("GEMINI_API_KEY", "gm-test")
     cfg = load_config()
-    provider = OpenAIProvider(cfg, client=_FakeOpenAI(json.dumps(payload)))
-    client = LLMClient(config=cfg, provider=provider)
+    return LLMClient(config=cfg, provider=GeminiProvider(cfg, client=_FakeGeminiClient(payload)))
+
+
+# --------------------------------------------------------------------------- #
+# Schema contract
+# --------------------------------------------------------------------------- #
+def test_payload_validates():
+    model = MacroAnalysis.model_validate(_VALID_PAYLOAD)
+    assert 1 <= model.confidence_score <= 10
+    assert len(model.positive_sectors) == 5
+    assert len(model.positive_tickers) == 3
+
+
+def test_b3_ticker_format():
+    model = MacroAnalysis.model_validate(_VALID_PAYLOAD)
+    for t in model.positive_tickers + model.negative_tickers:
+        assert t.ticker[:4].isalpha()
+        assert any(ch.isdigit() for ch in t.ticker)
+
+
+# --------------------------------------------------------------------------- #
+# Full flow via stubbed real provider
+# --------------------------------------------------------------------------- #
+def test_full_flow_real_stub(clean_env, sample_scenario):
+    client = _client_with(_VALID_PAYLOAD, clean_env)
     analysis, result = analyze_macro_scenario(
         sample_scenario,
         system_prompt=_load("system_prompt.txt"),
@@ -157,30 +108,38 @@ def test_full_flow_real_stub(clean_env, sample_scenario):
     assert result.source == "llm"
     assert analysis.confidence_score == 7
     assert analysis.positive_sectors[0].sector == "Banks"
+    report = generate_report(analysis, source_banner=result.banner())
+    assert "Macro Scenario Analysis" in report
+    assert "[LLM]" in report
+    assert len(report.split()) <= 500
 
 
-def test_real_failure_falls_back(clean_env, sample_scenario):
-    clean_env.setenv("OPENAI_API_KEY", "sk-test")
-    cfg = load_config()
-    provider = OpenAIProvider(cfg, client=_FakeOpenAI("not json"))
-    client = LLMClient(config=cfg, provider=provider)
+def test_report_word_limit_with_verbose_model(clean_env, sample_scenario):
+    verbose = json.loads(json.dumps(_VALID_PAYLOAD))
+    long = " ".join(["word"] * 120)
+    for s in verbose["positive_sectors"] + verbose["negative_sectors"]:
+        s["rationale"] = long
+    verbose["confidence_rationale"] = long
+    verbose["investment_view"] = long
+    client = _client_with(verbose, clean_env)
     analysis, result = analyze_macro_scenario(
         sample_scenario,
         system_prompt=_load("system_prompt.txt"),
         user_prompt_template=_load("user_prompt.txt"),
         client=client,
     )
-    assert result.source == "fallback"
-    assert isinstance(analysis, MacroAnalysis)
+    report = generate_report(analysis, source_banner=result.banner())
+    assert len(report.split()) <= 500
 
 
 def test_empty_scenario_raises(clean_env):
-    clean_env.setenv("LLM_PROVIDER", "mock")
+    client = _client_with(_VALID_PAYLOAD, clean_env)
     with pytest.raises(ValueError):
         analyze_macro_scenario(
             "   ",
             system_prompt=_load("system_prompt.txt"),
             user_prompt_template=_load("user_prompt.txt"),
+            client=client,
         )
 
 

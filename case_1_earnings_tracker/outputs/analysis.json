@@ -15,11 +15,11 @@
     },
     "key_takeaways": [
         "Itaú Unibanco delivered a strong managerial result of BRL 12.3 billion in Q1 2026, a 10% increase year-over-year, with a consolidated ROE of 24.8% and 26.4% in Brazil.",
-        "The bank's loan portfolio grew 1.2% quarter-over-quarter (excluding FX effects) and 9% year-over-year, with a strong focus on \"target clients\" who represent nearly 80% of the outstanding portfolio and over 90% of new originations.",
-        "Short-term delinquency (NPL 15-90) increased by 10 basis points consolidated, but long-term delinquency remains stable, reflecting the resilience and quality of the portfolio, especially in individuals and large corporates.",
-        "Itaú's delinquency rates across personal loans, credit cards, and auto loans are significantly lower than market averages, and in many cases, show opposite trends (decreasing vs. increasing market delinquency).",
-        "Non-interest expenses declined 5% quarter-over-quarter and increased nearly 5% year-over-year, aligning with efficiency program targets, resulting in a record-low efficiency ratio of 34.9% in Brazil.",
-        "The bank maintains a very solid capital base with a CET1 ratio of 12.3%, comfortably funding capital uses and risk-weighted asset growth, and aims for a 12% CET1 ratio for dividend distribution."
+        "The bank's loan portfolio grew 1.2% quarter-over-quarter (excluding FX effects) and 9% year-over-year, with a strong focus on \"target clients\" who are considered resilient across credit cycles, now representing nearly 80% of the outstanding portfolio.",
+        "Short-term delinquency (NPL 15-90) increased by 10 basis points consolidated, but long-term delinquency remains stable, and the increase in SME delinquency is mechanical and covered by government guarantees.",
+        "Non-interest expenses declined 5% quarter-over-quarter and increased nearly 5% year-over-year, fully aligned with efficiency program targets, achieving a record-low efficiency ratio of 34.9% in Brazil.",
+        "The bank maintains a very solid capital base with a CET1 ratio of 12.3%, comfortably funding capital uses and risk-weighted asset growth, and aims for a 12% CET1 ratio for dividend distribution.",
+        "Core net interest margin (NIM) performance remains strong, driven by portfolio growth and favorable mix, despite headwinds from early dividend distribution and calendar effects."
     ],
     "guidance": [
         "We maintain our commitment to reaching our efficiency targets. If you want a reference, we continue to aim for the midpoint of our guidance, which implies annual expense growth of 3.5%.",
@@ -29,30 +29,42 @@
     ],
     "guidance_changes": [
         {
-            "change": "The CEO explicitly stated that macroeconomic conditions are worse than expected when guidance was established due to geopolitical events and their impact on inflation, oil prices, and global growth.",
-            "impact": "While the guidance for profitability, expenses, and credit growth is reaffirmed, this indicates increased external headwinds and a need for heightened vigilance, potentially making it harder to achieve targets without strong internal execution."
+            "change": "Reaffirmation of annual expense growth guidance at 3.5% (midpoint).",
+            "impact": "Consistent with prior quarter, indicating continued focus on efficiency and cost control."
+        },
+        {
+            "change": "Reaffirmation of profitability guidance above 20% ROE.",
+            "impact": "Consistent with prior quarter, indicating confidence in sustained strong profitability despite macroeconomic challenges."
+        },
+        {
+            "change": "Explicit expectation for long-term delinquency in individuals to remain stable throughout the year.",
+            "impact": "New, more specific guidance on delinquency trends for a key portfolio segment, suggesting confidence in credit quality management."
+        },
+        {
+            "change": "Explicit expectation for SME long-term delinquency to be around 1.9%-2.1%.",
+            "impact": "New, more specific guidance on SME delinquency, attributing expected increases to mechanical effects of government programs rather than fundamental credit deterioration."
         }
     ],
     "analyst_questions": [
         {
             "question": "What are Itaú's initial impressions on the Desenrola program and the next steps for Rede, especially regarding payouts and strategic positioning?",
-            "response_summary": "Management stated that Desenrola is a pro-program for lower-income clients, and while Itaú is actively participating and offering competitive terms, its impact on the bank's overall results is not expected to be material due to the bank's less exposed client portfolio. Regarding Rede, management emphasized its successful integration into an \"integrated offering\" focused on client needs rather than isolated products. They noted a market share effect due to a higher volume of wholesale clients, but reaffirmed Itaú's leadership in both wholesale and retail. They also explained that volatility in payouts and receivables is due to mix effects and hedge structures, and that a future adjustment will move more of Rede's results into the services and insurance lines.",
-            "response_quality": "High"
+            "response_summary": "Regarding Desenrola, Itaú is actively participating, but the program is not expected to be material to results given the bank's portfolio composition. For Rede, the focus is on integrated offerings and client-centric pricing, not market share. The bank is a leader in wholesale and retail acquiring. Volatility in payouts and receivables is due to mix effects and hedge structures, with an upcoming adjustment to move more Rede results into service lines.",
+            "response_quality": "Medium"
         },
         {
             "question": "How many levers remain available to maintain or expand the bank's ROE throughout the year, and will sustainability come from client margin, efficiency, credit mix, service revenues, or capital allocation?",
-            "response_summary": "Management reiterated that they avoid explicit ROE guidance, preferring to focus on value creation above the cost of equity (14.5%). They reaffirmed the guidance of profitability above 20% and expressed confidence in delivering strong profitability in future quarters, despite expected volatility. They identified service and insurance lines as potential challenges due to their correlation with economic activity and capital markets. Client margin, efficiency, and credit mix were highlighted as core drivers, with the efficiency agenda being vital for competitiveness. They also noted that a structural drop in interest rates could improve the cost of equity and allow for more competitive pricing.",
+            "response_summary": "Management avoids explicit ROE guidance but reaffirms profitability above 20%. They are comfortable with the current guidance. Sustainability will come from client margin (core margin growing), efficiency (reaffirmed cost guidance), and credit mix. Service and insurance revenues are seen as a challenge due to correlation with economic activity and capital markets. Long-term profitability depends on the spread between ROE and cost of equity, influenced by interest rates and the institutional environment.",
             "response_quality": "Medium"
         },
         {
             "question": "Considering current macroeconomic conditions, credit quality, and delinquency trends, are conditions better or worse than expected when guidance was established, and could these factors affect future credit growth or the bank's ability to deliver its guidance?",
-            "response_summary": "Management objectively stated that macroeconomic conditions are worse than at the beginning of the year due to geopolitical events, increased inflation uncertainties, and global growth deceleration. However, they reaffirmed the guidance, citing the bank's disciplined provisioning, resilient client portfolio, and well-managed allocation across segments. They expect long-term delinquency for individuals to remain stable and for SMEs to see a mild, mechanical increase. They emphasized that the portfolio was built to withstand current cycles and that while not isolated from global events, the bank's robust balance sheet and proactive provisioning allow it to face future challenges.",
+            "response_summary": "Objectively, macroeconomic conditions are worse than at the beginning of the year due to geopolitical events and increased uncertainties. However, the bank's portfolio was built with resilient clients and proactive provisioning. Despite the worsening macro, the guidance is reaffirmed. Short-term delinquency in individuals was better than expected for a Q1, and long-term delinquency is expected to be stable for individuals and show a mild, mechanical increase for SMEs. The bank's balance sheet is robust to face future challenges.",
             "response_quality": "High"
         }
     ],
     "red_flags": [],
     "surprise_score": {
         "score": 6,
-        "justification": "The explicit statement that macroeconomic conditions are \"worse than the beginning of the year\" due to geopolitical events, despite reaffirming guidance, is a notable shift from the prior quarter's more general \"macro environment requires attention.\" The detailed breakdown of Itaú's delinquency rates versus the market, showing significantly better performance and even opposite trends, is also a new level of transparency and a positive surprise. The discussion around the mechanical effects on SME delinquency due to government-backed programs ending grace periods, while expected internally, might not have been fully priced into market consensus. The record-low efficiency ratio breaking below 35% is a strong operational beat. The detailed explanation of margin dynamics, including the impact of early dividend distribution and calendar effects, provides more granular insight than typically offered."
+        "justification": "The management's explicit acknowledgment that \"the conditions from the past to now are worse than the beginning of the year\" due to geopolitical events and increased uncertainties is a significant statement that likely deviates from a purely optimistic pre-call consensus. While they reaffirm guidance, the direct admission of a deteriorating macro environment, coupled with detailed, never-before-shared delinquency breakdowns and specific expectations for SME and individual long-term NPLs, provides a more nuanced and potentially less sanguine picture than a general \"comfortable with guidance\" message. The detailed explanation of margin impacts from early dividend distribution and calendar effects also adds depth that might not have been fully anticipated."
     }
 }

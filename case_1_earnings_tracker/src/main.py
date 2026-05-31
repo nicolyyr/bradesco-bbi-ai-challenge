@@ -30,7 +30,6 @@ from shared.llm.logging_utils import get_logger  # noqa: E402
 from shared.paths import repo_path  # noqa: E402
 
 from analyzer import analyze_earnings_call  # noqa: E402
-from baseline import build_baseline  # noqa: E402
 from parser import (  # noqa: E402
     load_analyst_questions,
     load_prior_transcript,
@@ -72,13 +71,7 @@ def run(argv=None) -> int:
     user_template = load_prompt(repo_path(CASE_DIR, "prompts", "user_prompt.txt"))
 
     # Build the client once so the chosen provider is logged a single time.
-    baseline_payload = build_baseline(
-        transcript=transcript,
-        company=args.company,
-        analyst_questions_text=questions,
-        prior_transcript=prior,
-    )
-    client = LLMClient(config=config, baseline_fn=lambda s, u: baseline_payload)
+    client = LLMClient(config=config)
 
     analysis, result = analyze_earnings_call(
         transcript=transcript,

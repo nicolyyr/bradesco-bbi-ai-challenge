@@ -1,11 +1,11 @@
 """One-command demo for the Bradesco BBI AI Challenge.
 
-Runs BOTH cases end-to-end and prints a compact, presentation-friendly summary
-showing which provider produced each answer (real LLM, mock, or fallback).
+Runs BOTH cases end-to-end against a real LLM (Google Gemini by default, OpenAI
+as an alternative) and prints which model produced each answer.
 
-Reproducible with zero credentials: if OPENAI_API_KEY is unset (or
-LLM_PROVIDER=mock), it uses the deterministic mock provider derived from the
-real input. Set OPENAI_API_KEY to run the real generative-AI path.
+Generative AI is mandatory: set GEMINI_API_KEY (free tier at
+https://aistudio.google.com/apikey) or OPENAI_API_KEY in your environment or a
+.env file before running. There is no offline mode.
 
     python demo.py            # both cases
     python demo.py --case 1   # only Case 1
@@ -13,8 +13,8 @@ real input. Set OPENAI_API_KEY to run the real generative-AI path.
     make demo                 # equivalent
 
 Each case is executed in its own subprocess (same interpreter) for clean module
-isolation - the two cases intentionally share flat module names (main, schema,
-baseline), so running them in-process would collide on sys.path.
+isolation - the two cases intentionally share flat module names (main, schema),
+so running them in-process would collide on sys.path.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-from shared.llm import load_config  # noqa: E402
+from shared.llm import MissingAPIKeyError, load_config  # noqa: E402
 
 CASE_1_MAIN = os.path.join(REPO_ROOT, "case_1_earnings_tracker", "src", "main.py")
 CASE_2_MAIN = os.path.join(REPO_ROOT, "case_2_macro_engine", "src", "main.py")
@@ -50,15 +50,13 @@ def main(argv=None) -> int:
     parser.add_argument("--case", choices=["1", "2", "both"], default="both")
     args = parser.parse_args(argv)
 
-    config = load_config()
     _rule("BRADESCO BBI AI CHALLENGE — DEMO")
+    try:
+        config = load_config()
+    except MissingAPIKeyError as exc:
+        print(f"ERROR: {exc}")
+        return 2
     print(f"LLM configuration: {config.describe()}")
-    if config.is_mock:
-        print(
-            "NOTE: running in MOCK mode (no OPENAI_API_KEY). Output is the\n"
-            "deterministic baseline derived from the real input. Set\n"
-            "OPENAI_API_KEY (and optionally OPENAI_MODEL) to run the real LLM."
-        )
 
     rc = 0
     if args.case in ("1", "both"):

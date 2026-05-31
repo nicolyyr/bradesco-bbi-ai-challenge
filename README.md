@@ -66,31 +66,29 @@ flowchart TD
     R --> CL[shared/llm: LLMClient]
     CL -->|provider=gemini| GEM[GeminiProvider<br/>real GenAI - default]
     CL -->|provider=openai| OAI[OpenAIProvider<br/>real GenAI - alt]
-    CL -->|provider=mock| MK[MockProvider<br/>deterministic baseline]
     GEM --> V[Parse + validate against<br/>pydantic schema]
     OAI --> V
-    MK --> V
     V -->|valid| OUT[Validated model]
-    V -->|error| FB[Deterministic baseline<br/>fallback]
-    FB --> OUT
+    V -->|invalid| RG[Regenerate<br/>up to 3 attempts]
+    RG --> V
+    V -->|unrecoverable| ERR[Raise — no silent degradation]
     OUT --> J[analysis.json]
     OUT --> MD[report.md]
 ```
 
 **Separation of concerns:** business logic (`*/src/analyzer.py`,
 `macro_analyzer.py`) depends only on the case-agnostic `shared/llm` layer and
-never touches the SDK or parses JSON itself. The rule-based engines
-(`baseline.py`, `sector_mapper.py`) are used **only** as mock output, fallback,
-and sanity baseline — never presented as generative AI.
+never touches the SDK or parses JSON itself. Generative AI is mandatory: there
+is no mock or fallback path — every result is model-authored.
 
 ### Components
 - `shared/llm/` — provider abstraction, config (env), JSON parsing + schema
-  validation, retries, deterministic fallback, structured logging.
-- `case_1_earnings_tracker/` — Case 1 prompts, schema, baseline, analyzer,
+  validation, retries, regeneration, structured logging.
+- `case_1_earnings_tracker/` — Case 1 prompts, schema, analyzer,
   report generator, entrypoint, data.
 - `case_2_macro_engine/` — same structure for Case 2.
 - `demo.py`, `Makefile` — one-command runners.
-- `tests/` — 56 automated tests (pytest).
+- `tests/` — 39 automated tests (pytest).
 
 ## Where generative AI is used
 
@@ -99,13 +97,14 @@ The model performs the **core extraction/reasoning** in both cases:
 - **Case 1:** `case_1_earnings_tracker/src/analyzer.py` →
   `shared/llm/client.py::LLMClient.generate_structured` →
   `GeminiProvider.complete` (or `OpenAIProvider.complete`) in
-  `shared/llm/providers.py`, using JSON mode and the versioned prompts in
-  `case_1_earnings_tracker/prompts/`.
+  `shared/llm/providers.py`, using structured output and the versioned prompts
+  in `case_1_earnings_tracker/prompts/`.
 - **Case 2:** `case_2_macro_engine/src/macro_analyzer.py` → same client → same
   provider, with `case_2_macro_engine/prompts/`.
 
-Provenance is explicit at runtime: every run prints `[LLM]`, `[MOCK]`, or
-`[FALLBACK]` so you can prove which path produced the answer.
+Provenance is explicit at runtime: every run prints a single
+`[LLM] provider:model (N attempt(s), X ms)` banner so you can prove which model
+produced the answer. There is no mock or fallback — generative AI is mandatory.
 
 ## Prompt engineering
 
@@ -118,8 +117,8 @@ know"). Full rationale, variables, and evolution strategy are documented in
 ## Prerequisites
 - Python 3.10+ (developed and validated on 3.13).
 - `make` (optional; all commands have a plain-Python equivalent).
-- A Gemini API key (free tier) **only** for the real GenAI path — or an OpenAI
-  key. The demo works without any key.
+- A Gemini API key (free tier) **or** an OpenAI key. Generative AI is mandatory;
+  without a key `load_config()` raises `MissingAPIKeyError`.
 
 ## Installation
 
@@ -141,16 +140,15 @@ cp .env.example .env
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `LLM_PROVIDER` | auto | `gemini`, `openai` or `mock`. Empty → auto (gemini key → gemini, else openai key → openai, else mock). |
-| `GEMINI_API_KEY` | — | Default real path. Free tier at [AI Studio](https://aistudio.google.com/apikey). `GOOGLE_API_KEY` also accepted. |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model (JSON mode via `response_mime_type`). |
-| `OPENAI_API_KEY` | — | Alternative real path. Leave empty to use Gemini/mock. |
+| `LLM_PROVIDER` | auto | `gemini` or `openai`. Empty → auto (gemini key → gemini, else openai key → openai). |
+| `GEMINI_API_KEY` | — | Default provider. Free tier at [AI Studio](https://aistudio.google.com/apikey). `GOOGLE_API_KEY` also accepted. |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model (native structured output via `response_schema`). |
+| `OPENAI_API_KEY` | — | Alternative provider. Leave empty to use Gemini. |
 | `OPENAI_MODEL` | `gpt-4o-mini` | OpenAI model (JSON mode). |
 | `OPENAI_BASE_URL` | — | Optional OpenAI-compatible gateway. |
 | `LLM_TEMPERATURE` | `0.2` | Sampling temperature. |
-| `LLM_MAX_TOKENS` | `2000` | Max completion tokens. |
-| `LLM_MAX_RETRIES` | `2` | Retries on transient API errors. |
-| `LLM_ALLOW_FALLBACK` | `true` | Fall back to baseline on failure (recommended for demos). |
+| `LLM_MAX_TOKENS` | `8000` | Max completion tokens. |
+| `LLM_MAX_RETRIES` | `4` | Retries on transient API errors (honors a 429's server-suggested `retryDelay`). |
 | `LLM_LOG_LEVEL` | `INFO` | `DEBUG`/`INFO`/`WARNING`/`ERROR`. |
 
 **No secrets are committed.** `.env` is git-ignored; only `.env.example` (no
@@ -184,20 +182,21 @@ pytest -q             # or: make test
 make validate         # install + test + demo, end to end
 ```
 
-56 tests cover: provider selection & precedence (Gemini default), the Gemini and
-OpenAI real paths (stubbed, no network), mock path, retries, JSON parsing, schema
-validation, fallback, missing-config errors, both end-to-end flows, the report
-word limits, and the data files.
+39 tests cover: provider selection & precedence (Gemini default), the Gemini and
+OpenAI real paths (exercised via an injected fake SDK client — no network, no
+key), retries, JSON parsing/sanitization, schema validation, regeneration on
+malformed JSON then raising, `MissingAPIKeyError` when no key is present, both
+end-to-end flows, the report word limits, and the data files.
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `GEMINI_API_KEY is not set` (real mode) | no key | export the key, or `LLM_PROVIDER=mock`. |
-| Output says `[FALLBACK]` | LLM call/parse failed | check `LLM_LOG_LEVEL=DEBUG`; output is still valid (baseline). |
+| `MissingAPIKeyError` at startup | no API key set | export `GEMINI_API_KEY` (free tier) or `OPENAI_API_KEY`. A key is mandatory — there is no offline/mock mode. |
+| Run fails after retries with a 429/quota error | provider rate limit or quota exhausted | wait and retry (the client already honors the 429's server-suggested `retryDelay` across `LLM_MAX_RETRIES`), or switch provider with `LLM_PROVIDER`. No fallback by design. |
 | `ModuleNotFoundError: google` / `openai` | deps not installed | `pip install -r requirements.txt`. |
-| Report slightly over word limit (real mode) | verbose model | lower `LLM_MAX_TOKENS` or tighten the prompt; the report generator clips defensively. |
-| Rate-limit / network errors | API issues | retries kick in; fallback guarantees a result. |
+| Report slightly over word limit | verbose model | the report generator clips to the limit defensively; you may also lower `LLM_MAX_TOKENS` or tighten the prompt. |
+| Repeated invalid/malformed JSON | model not honoring the contract | the client regenerates up to 3 times; persistent failure raises (`LLM_LOG_LEVEL=DEBUG` shows the raw output). |
 
 ## Time log
 _Approximate, honest._
@@ -205,11 +204,11 @@ _Approximate, honest._
 | Activity | Time |
 |---|---|
 | Reading the case, setup, data prep | ~1.5 h |
-| Shared LLM layer (providers, config, validation, fallback) | ~3 h |
+| Shared LLM layer (providers, config, validation, retries + regeneration) | ~3 h |
 | Case 1 (prompts, schema, analyzer, report, bug fixes) | ~3 h |
 | Case 2 (prompts, schema, analyzer, report) | ~2 h |
 | Multi-provider support (Gemini default + OpenAI) | ~1 h |
-| Tests (56) | ~2 h |
+| Tests (39) | ~2 h |
 | Documentation (this README + 3 docs) | ~2 h |
 | **Total** | **~14.5 h** |
 
@@ -222,25 +221,28 @@ engineering and anti-hallucination discipline. Concretely, Case 1 received the
 extra investment via:
 - **Citation tracking** (verbatim evidence + verbatim red-flag quotes);
 - **Temporal comparison** (real guidance-change diff vs. a prior quarter);
-- a **self-correcting output contract** (schema validation + fallback).
+- a **self-correcting output contract** (schema validation + regeneration).
 
-A cross-cutting investment benefiting both: the **multi-mode LLM layer**
-(real/mock/fallback) and a **56-test** safety net, which I judged more valuable
-for a defensible, demonstrable delivery than adding more thin extensions.
+A cross-cutting investment benefiting both: the **resilient LLM layer**
+(retries that honor 429 `retryDelay`, regeneration on invalid JSON, and Gemini
+native structured output) and a **39-test** safety net, which I judged more
+valuable for a defensible, demonstrable delivery than adding more thin
+extensions.
 
 ## Three most serious limitations
 1. **Single-call extraction for long transcripts.** Case 1 sends the transcript
    in one prompt. Very long calls can exceed context or dilute attention; there
    is no chunk-map-reduce or retrieval step yet. *(Mitigation: the report stays
    terse; full data is in JSON. Not yet solved for >context-window transcripts.)*
-2. **Mock/fallback is heuristic, not analytic.** When no key is present (or on
-   failure), output comes from keyword rules. It is honest (derived from input,
-   labelled `[MOCK]`/`[FALLBACK]`) but less nuanced than the LLM. Reviewers must
-   run the real path to judge true output quality.
-3. **No grounding verification of model claims.** In real mode we instruct the
-   model to quote verbatim, but we do not yet programmatically verify that each
-   returned quote is an exact substring of the source. A confident model could
-   still paraphrase. *(A verifier is the first item below.)*
+2. **Live runs depend on API availability/quota.** Generative AI is mandatory
+   and there is no offline fallback by design. A 429/quota error that persists
+   after `LLM_MAX_RETRIES` (which honor the server-suggested `retryDelay`) fails
+   the run. *(Mitigation: Gemini's free tier, plus the ability to switch
+   provider via `LLM_PROVIDER`. Not solved without an active key/quota.)*
+3. **No grounding verification of model claims.** We instruct the model to
+   quote verbatim, but we do not yet programmatically verify that each returned
+   quote is an exact substring of the source. A confident model could still
+   paraphrase. *(A verifier is the first item below.)*
 
 ## If I had two more weeks
 - **Quote-grounding verifier**: assert every evidence/red-flag quote is a literal
@@ -254,8 +256,9 @@ for a defensible, demonstrable delivery than adding more thin extensions.
 - **Streamlit UI** for both cases and a small evaluation harness with gold labels.
 
 ## Risks
-- **API cost/availability** in real mode → mitigated by Gemini's free tier plus
-  mock + fallback.
+- **API cost/availability** → mitigated by Gemini's free tier, retries that
+  honor a 429's server-suggested `retryDelay`, and the ability to switch
+  provider via `LLM_PROVIDER`. There is no offline fallback by design.
 - **Model drift** across versions → pinned model via `GEMINI_MODEL` /
   `OPENAI_MODEL`; schema validation catches contract breaks.
 - **Prompt-injection** from adversarial transcripts → system prompt restricts the

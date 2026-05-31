@@ -2,35 +2,52 @@
 
 This module isolates *how* we talk to a model from *what* we ask it. Business
 logic depends only on the :class:`LLMProvider` interface and never imports a
-vendor SDK directly. Three concrete providers are shipped:
+vendor SDK directly. Two real providers are shipped:
 
-* :class:`GeminiProvider` - the default real integration (requires
-  ``GEMINI_API_KEY``). Google offers a free tier, so this is the lowest-friction
-  way to run the real generative-AI path.
-* :class:`OpenAIProvider` - alternative real integration (requires
-  ``OPENAI_API_KEY``). Lets the solution do a real multi-model comparison.
-* :class:`MockProvider`   - a deterministic, offline provider used for tests
-  and credential-free demos. It delegates to a caller-supplied function so the
-  mock answer is computed from the *actual* input rather than hardcoded.
+* :class:`GeminiProvider` - the default integration (requires ``GEMINI_API_KEY``).
+  Google offers a free tier, so this is the lowest-friction way to run the
+  generative-AI path.
+* :class:`OpenAIProvider` - alternative integration (requires ``OPENAI_API_KEY``).
+  Lets the solution do a real multi-model comparison.
 
-Both real SDKs are imported lazily, so the mock path and the test suite never
-require either package to be importable at module load time. All providers
-return a :class:`LLMResponse` with the raw text plus metadata useful for
-debugging and for proving in a demo which path produced the answer.
+Generative AI is mandatory: there is no mock/offline provider. The test suite
+exercises these real providers by injecting a fake SDK client (no network, no
+key). Both SDKs are imported lazily, so importing this module never requires
+either package to be installed. All providers return a :class:`LLMResponse` with
+the raw text plus metadata useful for debugging and for proving which model
+produced the answer.
 """
 
 from __future__ import annotations
 
-import json
+import re
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Callable
 
 from .config import LLMConfig
 from .logging_utils import get_logger
 
 logger = get_logger(__name__)
+
+# Cap any single backoff sleep so an interactive run never hangs too long.
+_MAX_BACKOFF_SECONDS = 30.0
+
+
+def _backoff_seconds(error: Exception, attempt: int) -> float:
+    """How long to wait before the next retry.
+
+    If the provider returned a rate-limit error with a server-suggested
+    ``retryDelay`` (e.g. Gemini 429 "Please retry in 24s"), honor it. Otherwise
+    use exponential backoff. Always capped by ``_MAX_BACKOFF_SECONDS``.
+    """
+    text = str(error)
+    suggested = 0.0
+    m = re.search(r"retry(?:Delay|\s+in)\D*?(\d+(?:\.\d+)?)\s*s", text, re.IGNORECASE)
+    if m:
+        suggested = float(m.group(1)) + 1.0  # small margin over the server hint
+    backoff = max(suggested, min(2.0 * attempt, 8.0))
+    return min(backoff, _MAX_BACKOFF_SECONDS)
 
 
 class LLMError(RuntimeError):
@@ -87,13 +104,10 @@ class OpenAIProvider(LLMProvider):
         except ImportError as exc:  # pragma: no cover - depends on env
             raise LLMError(
                 "The 'openai' package is not installed. Run "
-                "'pip install -r requirements.txt' or use LLM_PROVIDER=mock."
+                "'pip install -r requirements.txt'."
             ) from exc
         if not self.config.api_key:
-            raise LLMError(
-                "OPENAI_API_KEY is not set. Export it or use LLM_PROVIDER=mock "
-                "for a credential-free demo."
-            )
+            raise LLMError("OPENAI_API_KEY is not set.")
         kwargs = {"api_key": self.config.api_key}
         if self.config.base_url:
             kwargs["base_url"] = self.config.base_url
@@ -151,9 +165,8 @@ class OpenAIProvider(LLMProvider):
                     attempts,
                     exc,
                 )
-                # simple linear backoff; kept short for interactive demos
                 if attempt < attempts:
-                    time.sleep(min(2.0 * attempt, 5.0))
+                    time.sleep(_backoff_seconds(exc, attempt))
 
         raise LLMError(
             f"OpenAI call failed after {attempts} attempt(s): {last_error}"
@@ -183,13 +196,10 @@ class GeminiProvider(LLMProvider):
         except ImportError as exc:  # pragma: no cover - depends on env
             raise LLMError(
                 "The 'google-genai' package is not installed. Run "
-                "'pip install -r requirements.txt' or use LLM_PROVIDER=mock."
+                "'pip install -r requirements.txt'."
             ) from exc
         if not self.config.api_key:
-            raise LLMError(
-                "GEMINI_API_KEY is not set. Export it or use LLM_PROVIDER=mock "
-                "for a credential-free demo."
-            )
+            raise LLMError("GEMINI_API_KEY is not set.")
         self._client = genai.Client(api_key=self.config.api_key)
         return self._client
 
@@ -268,48 +278,9 @@ class GeminiProvider(LLMProvider):
                     attempts,
                     exc,
                 )
-                # simple linear backoff; kept short for interactive demos
                 if attempt < attempts:
-                    time.sleep(min(2.0 * attempt, 5.0))
+                    time.sleep(_backoff_seconds(exc, attempt))
 
         raise LLMError(
             f"Gemini call failed after {attempts} attempt(s): {last_error}"
         ) from last_error
-
-
-class MockProvider(LLMProvider):
-    """Deterministic, offline provider for tests and credential-free demos.
-
-    It does NOT hardcode an answer. Instead it runs a caller-supplied
-    ``baseline_fn`` over the real input and serializes the result as JSON,
-    emulating a structured LLM response. This keeps the demo honest: the mock
-    output still reacts to the actual transcript / scenario, and it doubles as
-    the deterministic fallback used when the real provider is unavailable.
-    """
-
-    name = "mock"
-
-    def __init__(
-        self,
-        config: LLMConfig,
-        baseline_fn: Callable[[str, str], dict],
-    ) -> None:
-        self.config = config
-        self._baseline_fn = baseline_fn
-
-    def complete(
-        self, system_prompt: str, user_prompt: str, response_schema: object | None = None
-    ) -> LLMResponse:
-        start = time.perf_counter()
-        logger.info("Mock provider invoked (deterministic baseline)")
-        result = self._baseline_fn(system_prompt, user_prompt)
-        text = json.dumps(result, ensure_ascii=False)
-        latency_ms = (time.perf_counter() - start) * 1000
-        return LLMResponse(
-            text=text,
-            provider=self.name,
-            model="mock-baseline",
-            attempts=1,
-            latency_ms=latency_ms,
-            raw={"note": "deterministic mock derived from input"},
-        )

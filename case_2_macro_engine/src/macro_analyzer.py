@@ -1,10 +1,8 @@
 """Case 2 core: turn a natural-language macro scenario into a validated view.
 
 Mirrors Case 1's design: render versioned prompts, ask the shared LLMClient for
-a structured answer validated against :class:`MacroAnalysis`, and use the
-deterministic baseline as both mock generator and fallback payload. The
-rule-based ``sector_mapper`` is used only via the baseline - the primary path is
-generative AI.
+a structured answer validated against :class:`MacroAnalysis`. The model performs
+the scenario -> sector/ticker reasoning; there is no rule-based fallback.
 """
 
 from __future__ import annotations
@@ -22,10 +20,8 @@ from shared.llm import GenerationResult, LLMClient, load_config  # noqa: E402
 from shared.llm.logging_utils import get_logger  # noqa: E402
 
 try:
-    from .baseline import build_baseline
     from .schema import MacroAnalysis
 except ImportError:  # script-style import
-    from baseline import build_baseline  # type: ignore
     from schema import MacroAnalysis  # type: ignore
 
 logger = get_logger(__name__)
@@ -38,18 +34,12 @@ def analyze_macro_scenario(
     user_prompt_template: str,
     client: Optional[LLMClient] = None,
 ) -> tuple[MacroAnalysis, GenerationResult]:
-    """Run the macro analysis and return (validated_analysis, provenance)."""
+    """Run the macro analysis with generative AI and return (analysis, provenance)."""
     if not scenario_text or not scenario_text.strip():
         raise ValueError("Scenario text is empty; nothing to analyze.")
 
-    baseline_payload = build_baseline(scenario_text)
-
-    def baseline_fn(_system: str, _user: str) -> dict:
-        return baseline_payload
-
     if client is None:
-        config = load_config()
-        client = LLMClient(config=config, baseline_fn=baseline_fn)
+        client = LLMClient(config=load_config())
 
     rendered_user = user_prompt_template.format(scenario=scenario_text)
 
@@ -57,7 +47,6 @@ def analyze_macro_scenario(
         system_prompt=system_prompt,
         user_prompt=rendered_user,
         schema=MacroAnalysis,
-        fallback_payload=baseline_payload,
     )
     logger.info("Case 2 analysis produced via %s", result.source)
     return result.data, result  # type: ignore[return-value]

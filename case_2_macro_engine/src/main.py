@@ -29,7 +29,6 @@ from shared.llm import LLMClient, load_config  # noqa: E402
 from shared.llm.logging_utils import get_logger  # noqa: E402
 from shared.paths import repo_path  # noqa: E402
 
-from baseline import build_baseline  # noqa: E402
 from macro_analyzer import analyze_macro_scenario  # noqa: E402
 from report_generator import generate_report  # noqa: E402
 from utils import save_json, save_text  # noqa: E402
@@ -83,8 +82,7 @@ def run(argv=None) -> int:
     system_prompt = _load_prompt("system_prompt.txt")
     user_template = _load_prompt("user_prompt.txt")
 
-    baseline_payload = build_baseline(scenario)
-    client = LLMClient(config=config, baseline_fn=lambda s, u: baseline_payload)
+    client = LLMClient(config=config)
 
     analysis, result = analyze_macro_scenario(
         scenario,

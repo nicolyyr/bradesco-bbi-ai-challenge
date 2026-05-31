@@ -51,15 +51,17 @@ Rendering happens in `case_1_.../parser.py::render_user_prompt` and inline in
 
 Three layers keep the output controllable and valid:
 
-1. **JSON mode** — enforced per provider: Gemini uses
-   `response_mime_type="application/json"`, OpenAI uses
+1. **Structured / JSON mode** — enforced per provider: Gemini uses native
+   structured output (`response_schema` set to the case's pydantic model), which
+   guarantees schema-valid JSON; OpenAI uses
    `response_format={"type": "json_object"}`.
 2. **Explicit contract in the prompt** — the exact JSON skeleton with field
    names and allowed enum values is shown in the user message.
 3. **Schema validation** — the response is parsed (`_extract_json`, tolerant of
    fences/prose) and validated against a pydantic model
-   (`EarningsAnalysis` / `MacroAnalysis`). On any failure the pipeline falls back
-   to the deterministic baseline rather than emitting malformed output.
+   (`EarningsAnalysis` / `MacroAnalysis`). On any failure the client regenerates
+   (up to 3 attempts) rather than emit malformed output; if all attempts fail it
+   raises (no fallback).
 
 ## Example — Case 1
 
@@ -124,9 +126,10 @@ MACRO SCENARIO: The Central Bank unexpectedly raised interest rates by 2 pp ...
   runtime.
 - **Keep the contract and the schema in sync.** If you add a field to a prompt,
   add it to the matching pydantic model in `schema.py` (and a test).
-- **A/B safely.** Because output is schema-validated with fallback, a regressed
-  prompt degrades to the baseline instead of breaking the pipeline — change one
-  thing at a time and watch the `[LLM]` vs `[FALLBACK]` banner and the tests.
+- **A/B safely.** Because output is schema-validated with regeneration, a
+  regressed prompt triggers a regeneration attempt (and ultimately raises if it
+  keeps failing) instead of silently emitting bad output — change one thing at a
+  time and watch the `[LLM]` banner and the tests.
 - **Tighten, don't bloat.** Prefer sharper constraints (enums, counts, "verbatim")
   over longer prose; they reduce invalid responses more reliably.
 

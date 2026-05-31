@@ -1,24 +1,27 @@
 """High-level LLM client used by the business logic of both cases.
 
 Responsibilities:
-  * pick the provider (real OpenAI or deterministic mock) from config;
+  * pick the real provider (Gemini or OpenAI) from config;
   * render the prompt, call the model, and parse the JSON answer;
-  * validate the answer against a pydantic schema (the output contract);
-  * on any failure (call error, invalid JSON, schema mismatch) fall back to a
-    deterministic baseline so the pipeline always produces a usable result;
-  * report which path produced the answer (``source`` metadata) so a demo can
-    prove the LLM was actually used.
+  * validate the answer against a pydantic schema (the output contract),
+    regenerating a few times if the model returns malformed/invalid JSON;
+  * report which model produced the answer (``source`` metadata) so a demo can
+    prove generative AI was actually used.
+
+Generative AI is mandatory: there is no mock/offline path and no deterministic
+fallback. If the model cannot produce a schema-valid answer after retries, the
+call raises rather than silently degrading.
 
 Business modules call :meth:`LLMClient.generate_structured` and get back a
-validated pydantic model plus a :class:`GenerationResult` describing how it was
-produced. They never touch the SDK or parse JSON themselves.
+validated pydantic model plus a :class:`GenerationResult`. They never touch the
+SDK or parse JSON themselves.
 """
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Callable, Type, TypeVar
+from typing import Type, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
@@ -29,7 +32,6 @@ from .providers import (
     LLMError,
     LLMProvider,
     LLMResponse,
-    MockProvider,
     OpenAIProvider,
 )
 
@@ -38,8 +40,6 @@ logger = get_logger(__name__)
 T = TypeVar("T", bound=BaseModel)
 
 SOURCE_LLM = "llm"
-SOURCE_MOCK = "mock"
-SOURCE_FALLBACK = "fallback"
 
 
 @dataclass
@@ -47,19 +47,17 @@ class GenerationResult:
     """Outcome of a structured generation, with provenance for demos/tests."""
 
     data: BaseModel
-    source: str  # one of SOURCE_LLM / SOURCE_MOCK / SOURCE_FALLBACK
+    source: str  # currently always SOURCE_LLM
     provider: str
     model: str
     attempts: int
     latency_ms: float
-    used_fallback: bool
 
     def banner(self) -> str:
-        if self.source == SOURCE_LLM:
-            return f"[LLM] {self.provider}:{self.model} ({self.attempts} attempt(s), {self.latency_ms:.0f} ms)"
-        if self.source == SOURCE_MOCK:
-            return "[MOCK] deterministic baseline (no API key / LLM_PROVIDER=mock)"
-        return f"[FALLBACK] deterministic baseline used after LLM failure ({self.provider}:{self.model})"
+        return (
+            f"[LLM] {self.provider}:{self.model} "
+            f"({self.attempts} attempt(s), {self.latency_ms:.0f} ms)"
+        )
 
 
 def _sanitize_json_text(s: str) -> str:
@@ -102,24 +100,16 @@ def _extract_json(text: str) -> dict:
 
 
 class LLMClient:
-    """Orchestrates a structured generation with validation and fallback."""
+    """Orchestrates a structured generation against a real LLM provider."""
 
     def __init__(
         self,
         config: LLMConfig | None = None,
         provider: LLMProvider | None = None,
-        baseline_fn: Callable[[str, str], dict] | None = None,
     ) -> None:
         self.config = config or load_config()
-        self._baseline_fn = baseline_fn
         if provider is not None:
             self.provider = provider
-        elif self.config.is_mock:
-            if baseline_fn is None:
-                raise ValueError(
-                    "Mock provider requires a baseline_fn to derive output from input."
-                )
-            self.provider = MockProvider(self.config, baseline_fn)
         elif self.config.provider == PROVIDER_GEMINI:
             self.provider = GeminiProvider(self.config)
         elif self.config.provider == PROVIDER_OPENAI:
@@ -128,13 +118,15 @@ class LLMClient:
             raise ValueError(f"Unsupported provider: {self.config.provider!r}")
         logger.info("LLMClient ready: %s", self.config.describe())
 
+    # Number of full regenerations on a parse/validation failure before raising.
+    REGEN_ATTEMPTS = 3
+
     def generate_structured(
         self,
         *,
         system_prompt: str,
         user_prompt: str,
         schema: Type[T],
-        fallback_payload: dict | None = None,
     ) -> GenerationResult:
         """Call the model and return a validated ``schema`` instance.
 
@@ -143,56 +135,42 @@ class LLMClient:
         system_prompt, user_prompt:
             The rendered prompts.
         schema:
-            A pydantic model describing the expected output contract.
-        fallback_payload:
-            A deterministic, schema-compatible dict to use if the LLM path
-            fails. Required when fallback is enabled and the provider is real.
+            A pydantic model describing the expected output contract. It is also
+            passed to providers that support native structured output (Gemini),
+            constraining decoding to a guaranteed-valid JSON shape.
+
+        Raises
+        ------
+        LLMError / ValueError / ValidationError
+            If the model cannot produce a schema-valid answer after retries.
+            There is no deterministic fallback: generative AI is mandatory.
         """
-        # Real models occasionally emit malformed JSON (e.g. an unescaped char in
-        # a long verbatim quote). Since that is intermittent, regenerate a couple
-        # of times before giving up to the deterministic fallback. The mock is
-        # deterministic, so it is tried only once.
-        regen_attempts = 1 if self.provider.name == "mock" else 3
+        # A model can occasionally emit malformed JSON (e.g. an unescaped char in
+        # a long verbatim quote). Since that is intermittent, regenerate a few
+        # times before giving up.
         last_exc: Exception | None = None
-        for gen in range(1, regen_attempts + 1):
+        for gen in range(1, self.REGEN_ATTEMPTS + 1):
             try:
                 response = self.provider.complete(
                     system_prompt, user_prompt, response_schema=schema
                 )
                 data = self._parse_and_validate(response, schema)
-                source = SOURCE_MOCK if self.provider.name == "mock" else SOURCE_LLM
                 return GenerationResult(
                     data=data,
-                    source=source,
+                    source=SOURCE_LLM,
                     provider=response.provider,
                     model=response.model,
                     attempts=response.attempts,
                     latency_ms=response.latency_ms,
-                    used_fallback=False,
                 )
             except (LLMError, ValueError, ValidationError) as exc:
                 last_exc = exc
                 logger.warning(
                     "Structured generation attempt %s/%s failed: %s",
-                    gen, regen_attempts, exc,
+                    gen, self.REGEN_ATTEMPTS, exc,
                 )
 
-        # All regeneration attempts failed -> fallback (or raise).
-        if not self.config.allow_fallback or fallback_payload is None:
-            raise last_exc  # type: ignore[misc]
-        logger.warning(
-            "Falling back to deterministic baseline (LLM_ALLOW_FALLBACK=true)."
-        )
-        data = schema.model_validate(fallback_payload)
-        return GenerationResult(
-            data=data,
-            source=SOURCE_FALLBACK,
-            provider=self.provider.name,
-            model=getattr(self.config, "model", "unknown"),
-            attempts=0,
-            latency_ms=0.0,
-            used_fallback=True,
-        )
+        raise last_exc  # type: ignore[misc]
 
     def _parse_and_validate(self, response: LLMResponse, schema: Type[T]) -> T:
         payload = _extract_json(response.text)

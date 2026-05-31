@@ -6,15 +6,13 @@ Public surface used by the business logic of both cases.
 from .client import (
     GenerationResult,
     LLMClient,
-    SOURCE_FALLBACK,
     SOURCE_LLM,
-    SOURCE_MOCK,
 )
 from .config import (
     PROVIDER_GEMINI,
-    PROVIDER_MOCK,
     PROVIDER_OPENAI,
     LLMConfig,
+    MissingAPIKeyError,
     load_config,
 )
 from .providers import (
@@ -22,7 +20,6 @@ from .providers import (
     LLMError,
     LLMProvider,
     LLMResponse,
-    MockProvider,
     OpenAIProvider,
 )
 
@@ -34,13 +31,10 @@ __all__ = [
     "LLMProvider",
     "LLMResponse",
     "GeminiProvider",
-    "MockProvider",
     "OpenAIProvider",
+    "MissingAPIKeyError",
     "load_config",
     "PROVIDER_GEMINI",
     "PROVIDER_OPENAI",
-    "PROVIDER_MOCK",
     "SOURCE_LLM",
-    "SOURCE_MOCK",
-    "SOURCE_FALLBACK",
 ]

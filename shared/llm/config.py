@@ -23,6 +23,8 @@ PROVIDER_OPENAI = "openai"
 PROVIDER_MOCK = "mock"
 
 # Default model per real provider, used when no model env var is set.
+# gemini-2.5-flash is the broadly-available free-tier model; thinking is disabled
+# in the provider so the full JSON answer fits the token budget.
 _DEFAULT_MODELS = {
     PROVIDER_GEMINI: "gemini-2.5-flash",
     PROVIDER_OPENAI: "gpt-4o-mini",
@@ -144,7 +146,7 @@ def load_config() -> LLMConfig:
         api_key=_api_key_for(provider, gemini_key, openai_key),
         base_url=os.getenv("OPENAI_BASE_URL") or None,
         temperature=_env_float("LLM_TEMPERATURE", 0.2),
-        max_tokens=_env_int("LLM_MAX_TOKENS", 2000),
+        max_tokens=_env_int("LLM_MAX_TOKENS", 8000),
         max_retries=_env_int("LLM_MAX_RETRIES", 2),
         allow_fallback=_env_bool("LLM_ALLOW_FALLBACK", True),
         log_level=os.getenv("LLM_LOG_LEVEL", "INFO"),

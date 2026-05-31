@@ -186,12 +186,22 @@ class GeminiProvider(LLMProvider):
         # Imported lazily alongside the client to avoid a hard dependency.
         from google.genai import types
 
-        return types.GenerateContentConfig(
+        kwargs = dict(
             system_instruction=system_prompt,
             temperature=self.config.temperature,
             max_output_tokens=self.config.max_tokens,
             response_mime_type="application/json",
         )
+        # Gemini 2.5 models spend part of max_output_tokens on internal "thinking"
+        # tokens, which can truncate the visible JSON answer. Disable thinking so
+        # the full structured output fits. Guarded: older models / SDKs that don't
+        # support ThinkingConfig simply skip this.
+        try:
+            kwargs["thinking_config"] = types.ThinkingConfig(thinking_budget=0)
+        except Exception:  # pragma: no cover - depends on SDK/model support
+            pass
+
+        return types.GenerateContentConfig(**kwargs)
 
     def complete(self, system_prompt: str, user_prompt: str) -> LLMResponse:
         client = self._get_client()

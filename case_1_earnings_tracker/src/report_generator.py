@@ -25,6 +25,9 @@ def _clip(text: str, max_words: int) -> str:
     return " ".join(words[:max_words]).rstrip(",.;:") + "…"
 
 
+WORD_LIMIT = 400
+
+
 def generate_report(
     analysis: "EarningsAnalysis | dict",
     source_banner: Optional[str] = None,
@@ -32,11 +35,24 @@ def generate_report(
     if isinstance(analysis, dict):
         analysis = EarningsAnalysis.model_validate(analysis)
 
+    # The LLM can be more verbose than the deterministic baseline. We build the
+    # report at decreasing per-item word budgets (scale) until it fits the
+    # 400-word executive limit. Full, untruncated content stays in analysis.json.
+    for scale in (1.0, 0.85, 0.7, 0.55, 0.4):
+        report = _render(analysis, source_banner, scale)
+        if len(report.split()) <= WORD_LIMIT:
+            return report
+    return report  # smallest scale; still returned even if marginally over
+
+
+def _render(analysis: "EarningsAnalysis", source_banner: Optional[str], scale: float) -> str:
+    def c(words: int) -> int:
+        return max(4, int(round(words * scale)))
+
     tone = analysis.management_tone.classification
     confidence = analysis.management_tone.confidence
 
     # Bound list lengths AND per-item length to respect the 400-word limit.
-    # Full, untruncated content is preserved in analysis.json.
     evidence = analysis.management_tone.evidence[:3]
     takeaways = analysis.key_takeaways[:5]
     guidance = analysis.guidance[:3]
@@ -44,15 +60,15 @@ def generate_report(
     questions = analysis.analyst_questions[:3]
     red_flags = analysis.red_flags[:3]
 
-    ev_md = "\n".join(f"> {_clip(e, 20)}" for e in evidence) or "> (no verbatim evidence)"
-    tk_md = "\n".join(f"- {_clip(t, 14)}" for t in takeaways) or "- (none)"
-    gd_md = "\n".join(f"- {_clip(g, 18)}" for g in guidance) or "- (none)"
-    ch_md = "\n".join(f"- {_clip(c.change, 16)}" for c in changes) or "- (none)"
+    ev_md = "\n".join(f"> {_clip(e, c(20))}" for e in evidence) or "> (no verbatim evidence)"
+    tk_md = "\n".join(f"- {_clip(t, c(14))}" for t in takeaways) or "- (none)"
+    gd_md = "\n".join(f"- {_clip(g, c(18))}" for g in guidance) or "- (none)"
+    ch_md = "\n".join(f"- {_clip(c_.change, c(16))}" for c_ in changes) or "- (none)"
     rf_md = "\n".join(
-        f"- \"{_clip(r.quote, 16)}\" — {_clip(r.reason, 7)}" for r in red_flags
+        f"- \"{_clip(r.quote, c(16))}\" — {_clip(r.reason, c(7))}" for r in red_flags
     ) or "- None detected."
     q_md = "\n".join(
-        f"- **Q{i}** ({q.response_quality}): {_clip(q.question, 16)}"
+        f"- **Q{i}** ({q.response_quality}): {_clip(q.question, c(16))}"
         for i, q in enumerate(questions, start=1)
     ) or "- (none)"
 
@@ -81,5 +97,5 @@ def generate_report(
 {rf_md}
 
 ## Surprise Score
-**{analysis.surprise_score.score}/10** — {_clip(analysis.surprise_score.justification, 35)}
+**{analysis.surprise_score.score}/10** — {_clip(analysis.surprise_score.justification, c(35))}
 """

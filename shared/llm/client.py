@@ -62,11 +62,22 @@ class GenerationResult:
         return f"[FALLBACK] deterministic baseline used after LLM failure ({self.provider}:{self.model})"
 
 
+def _sanitize_json_text(s: str) -> str:
+    """Remove raw control characters that models occasionally emit inside string
+    values (e.g. unescaped newlines/tabs in a verbatim quote), which break
+    json.loads with 'Expecting , delimiter'. Preserves already-escaped sequences.
+    """
+    # Strip ASCII control chars except whitespace that JSON tolerates between
+    # tokens; inside strings these are illegal, so removing them is the safe fix.
+    return "".join(ch for ch in s if ch >= " " or ch in "\r\n\t").replace("\t", " ")
+
+
 def _extract_json(text: str) -> dict:
     """Best-effort JSON extraction from a model response.
 
-    Handles the common cases of a bare JSON object and a JSON object wrapped in
-    Markdown code fences. Raises ``ValueError`` if no object can be parsed.
+    Handles a bare JSON object, a JSON object wrapped in Markdown code fences,
+    and objects polluted with raw control characters. Raises ``ValueError`` if no
+    object can be parsed.
     """
     if not text or not text.strip():
         raise ValueError("empty response")
@@ -77,14 +88,17 @@ def _extract_json(text: str) -> dict:
         if cleaned.lower().startswith("json"):
             cleaned = cleaned[4:]
         cleaned = cleaned.strip()
-    try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
-        start = cleaned.find("{")
-        end = cleaned.rfind("}")
-        if start != -1 and end != -1 and end > start:
-            return json.loads(cleaned[start : end + 1])
-        raise ValueError("no JSON object found in response")
+
+    # narrow to the outermost object if there is surrounding prose
+    start, end = cleaned.find("{"), cleaned.rfind("}")
+    candidate = cleaned[start : end + 1] if (start != -1 and end > start) else cleaned
+
+    for attempt in (candidate, _sanitize_json_text(candidate)):
+        try:
+            return json.loads(attempt)
+        except json.JSONDecodeError:
+            continue
+    raise ValueError("could not parse a JSON object from the model response")
 
 
 class LLMClient:
@@ -134,36 +148,49 @@ class LLMClient:
             A deterministic, schema-compatible dict to use if the LLM path
             fails. Required when fallback is enabled and the provider is real.
         """
-        try:
-            response = self.provider.complete(system_prompt, user_prompt)
-            data = self._parse_and_validate(response, schema)
-            source = SOURCE_MOCK if self.provider.name == "mock" else SOURCE_LLM
-            return GenerationResult(
-                data=data,
-                source=source,
-                provider=response.provider,
-                model=response.model,
-                attempts=response.attempts,
-                latency_ms=response.latency_ms,
-                used_fallback=False,
-            )
-        except (LLMError, ValueError, ValidationError) as exc:
-            logger.warning("Structured generation failed: %s", exc)
-            if not self.config.allow_fallback or fallback_payload is None:
-                raise
-            logger.warning(
-                "Falling back to deterministic baseline (LLM_ALLOW_FALLBACK=true)."
-            )
-            data = schema.model_validate(fallback_payload)
-            return GenerationResult(
-                data=data,
-                source=SOURCE_FALLBACK,
-                provider=self.provider.name,
-                model=getattr(self.config, "model", "unknown"),
-                attempts=0,
-                latency_ms=0.0,
-                used_fallback=True,
-            )
+        # Real models occasionally emit malformed JSON (e.g. an unescaped char in
+        # a long verbatim quote). Since that is intermittent, regenerate a couple
+        # of times before giving up to the deterministic fallback. The mock is
+        # deterministic, so it is tried only once.
+        regen_attempts = 1 if self.provider.name == "mock" else 3
+        last_exc: Exception | None = None
+        for gen in range(1, regen_attempts + 1):
+            try:
+                response = self.provider.complete(system_prompt, user_prompt)
+                data = self._parse_and_validate(response, schema)
+                source = SOURCE_MOCK if self.provider.name == "mock" else SOURCE_LLM
+                return GenerationResult(
+                    data=data,
+                    source=source,
+                    provider=response.provider,
+                    model=response.model,
+                    attempts=response.attempts,
+                    latency_ms=response.latency_ms,
+                    used_fallback=False,
+                )
+            except (LLMError, ValueError, ValidationError) as exc:
+                last_exc = exc
+                logger.warning(
+                    "Structured generation attempt %s/%s failed: %s",
+                    gen, regen_attempts, exc,
+                )
+
+        # All regeneration attempts failed -> fallback (or raise).
+        if not self.config.allow_fallback or fallback_payload is None:
+            raise last_exc  # type: ignore[misc]
+        logger.warning(
+            "Falling back to deterministic baseline (LLM_ALLOW_FALLBACK=true)."
+        )
+        data = schema.model_validate(fallback_payload)
+        return GenerationResult(
+            data=data,
+            source=SOURCE_FALLBACK,
+            provider=self.provider.name,
+            model=getattr(self.config, "model", "unknown"),
+            attempts=0,
+            latency_ms=0.0,
+            used_fallback=True,
+        )
 
     def _parse_and_validate(self, response: LLMResponse, schema: Type[T]) -> T:
         payload = _extract_json(response.text)

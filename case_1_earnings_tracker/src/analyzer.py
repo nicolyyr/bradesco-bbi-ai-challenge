@@ -143,6 +143,19 @@ def analyze_transcript(transcript):
         },
         "key_takeaways": takeaways,
         "guidance": guidance,
+        "guidance_changes": [
+            {
+                "change": "No previous quarter transcript available.",
+                "impact": "Comparison could not be performed."
+            }
+        ],
+        "analyst_questions": [
+            {
+                "question": "No analyst questions identified in the transcript.",
+                "response_summary": "N/A",
+                "response_quality": "N/A"
+            }
+        ],
         "red_flags": red_flags,
         "surprise_score": calculate_surprise_score(lower_text)
     }
@@ -151,12 +164,16 @@ def analyze_transcript(transcript):
 def combine_chunk_analyses(chunk_analyses):
     combined_takeaways = []
     combined_guidance = []
+    combined_guidance_changes = []
+    combined_analyst_questions = []
     combined_red_flags = []
     combined_evidence = []
 
     for analysis in chunk_analyses:
         combined_takeaways.extend(analysis["key_takeaways"])
         combined_guidance.extend(analysis["guidance"])
+        combined_guidance_changes.extend(analysis["guidance_changes"])
+        combined_analyst_questions.extend(analysis["analyst_questions"])
         combined_red_flags.extend(analysis["red_flags"])
         combined_evidence.extend(analysis["management_tone"]["evidence"])
 
@@ -169,6 +186,8 @@ def combine_chunk_analyses(chunk_analyses):
         },
         "key_takeaways": combined_takeaways,
         "guidance": combined_guidance,
+        "guidance_changes": combined_guidance_changes,
+        "analyst_questions": combined_analyst_questions,
         "red_flags": combined_red_flags,
         "surprise_score": chunk_analyses[0]["surprise_score"]
     }

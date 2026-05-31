@@ -16,6 +16,19 @@
     "guidance": [
         "Negative outlook for next quarter."
     ],
+    "guidance_changes": [
+        {
+            "change": "No previous quarter transcript available.",
+            "impact": "Comparison could not be performed."
+        }
+    ],
+    "analyst_questions": [
+        {
+            "question": "No analyst questions identified in the transcript.",
+            "response_summary": "N/A",
+            "response_quality": "N/A"
+        }
+    ],
     "red_flags": [
         {
             "quote": "Revenue decline detected.",
